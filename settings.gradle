@@ -25,3 +25,9 @@ include 'docs'
 
     polling_input_stream, compressed_map_transport
 */
+include 'RoboCommonLib'
+
+include 'RoboHead'
+
+include 'RoboBoard'
+

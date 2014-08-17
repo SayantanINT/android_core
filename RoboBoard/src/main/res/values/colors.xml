@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="board_background_color">#80333333</color>
+    <color name="board_button_background_color">#9a000000</color>
+    <color name="board_button_background_pressed_color">#ffaaaaaa</color>
+    <color name="board_button_checked_stroke_color">#ff33b5e5</color>
+</resources>

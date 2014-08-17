@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RoboHead</string>
+
+    <string name="error_no_bluetooth_adapter">Bluetooth adapter is not found</string>
+    <string name="error_bluetooth_adapter_is_not_activated">Bluetooth adapter is not turned on</string>
+    <string name="error_sending_message_through_bluetooth">There\'s an error while sending a message through Bluetooth (%s)</string>
+
+    <string name="error_command_failed">command failed: %1$s</string>
+
+    <string name="dialog_settings_title">Application settings</string>
+
+    <string name="preference_ros_core">ROS core</string>
+    <string name="option_master_uri_title">Master URI</string>
+    <string name="option_master_uri_summary">URI of ROS core (http://&lt;ip address&gt;:&lt;port&gt;)</string>
+
+    <string name="preference_camera">Video</string>
+    <string name="option_camera_index_title">Camera</string>
+    <string name="option_camera_index_summary">Select camera for video streaming</string>
+    <string name="option_camera_index_dialog_title">Select camera</string>
+
+    <string name="option_front_camera_mode_title">Front camera</string>
+    <string name="option_front_camera_mode_summary">Select front camera mode for video streaming</string>
+    <string name="option_front_camera_mode_dialog_title">Select front camera mode</string>
+
+    <string name="option_back_camera_mode_title">Back camera</string>
+    <string name="option_back_camera_mode_summary">Select back camera mode for video streaming</string>
+    <string name="option_back_camera_mode_dialog_title">Select back camera mode</string>
+
+    <string name="option_camera_disabled_entry">Disabled</string>
+    <string name="option_camera_front_entry">Front camera</string>
+    <string name="option_camera_back_entry">Back camera</string>
+
+    <string name="option_camera_mode_default_entry">Camera %1$d [default]</string>
+    <string name="option_camera_mode_size_entry">Camera %1$d [%2$dx%3$d]</string>
+
+    <string name="option_drive_reverse_title">Drive reverse</string>
+    <string name="option_drive_reverse_summary">Reverse drive joystick when back camera is selected</string>
+
+    <string name="preference_bluetooth">Bluetooth communication with the robot</string>
+    <string name="option_robobody_mac_title">MAC-address of the robot</string>
+    <string name="option_robobody_mac_summary">MAC-address of the Bluetooth adapter</string>
+
+</resources>

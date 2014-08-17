@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">RoboBoard</string>
+
+
+    <string name="dialog_settings_title">Application settings</string>
+
+    <string name="preference_ros_core">ROS core</string>
+    <string name="option_master_uri_title">Master URI (http://&lt;ip address&gt;:&lt;port&gt;)</string>
+    <string name="option_master_uri_summary">URI of ROS core</string>
+
+    <string name="preference_remote_control_mode">Remote control</string>
+    <string name="option_remote_control_mode_title">Remote control mode</string>
+    <string name="option_remote_control_mode_summary">Use joystick or device orientation to control the robot</string>
+    <string name="option_remote_control_mode_dialog_title">Remote control mode</string>
+
+    <string name="option_remote_control_mode_entry_two_joysticks">Two joysticks</string>
+    <string name="option_remote_control_mode_entry_device_orientation">Device orientation</string>
+
+    <string name="option_remote_control_mode_value_two_joysticks">0</string>
+    <string name="option_remote_control_mode_value_device_orientation">1</string>
+
+    <string name="board_volts">V</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="board_button_width">20dp</dimen>
+    <dimen name="board_button_height">20dp</dimen>
+    <dimen name="board_button_marging">2dp</dimen>
+    <dimen name="board_button_padding">3dp</dimen>
+    <dimen name="battery_image_top_marging">2dp</dimen>
+    <dimen name="battery_image_left_marging">15dp</dimen>
+    <dimen name="battery_image_inside_marging">5dp</dimen>
+    <dimen name="joystick_size">110dp</dimen>
+    <dimen name="joystick_margin">5dp</dimen>
+</resources>

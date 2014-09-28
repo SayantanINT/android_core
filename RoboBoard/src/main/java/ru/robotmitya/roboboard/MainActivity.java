@@ -1,11 +1,15 @@
 package ru.robotmitya.roboboard;
 
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Surface;
 import android.view.WindowManager;
 
+import com.badlogic.gdx.Gdx;
 import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
 import org.ros.node.NodeConfiguration;
@@ -40,7 +44,7 @@ public class MainActivity extends RosActivity {
         fragmentTransaction.add(R.id.board_fragment, mBoardFragment);
         fragmentTransaction.commit();
 
-        mBoardOrientationNode = new BoardOrientationNode(this);
+        mBoardOrientationNode = new BoardOrientationNode(this, getRotation(this));
 
         SettingsFragment.initialize(this);
     }
@@ -77,7 +81,30 @@ public class MainActivity extends RosActivity {
         nodeMainExecutor.execute(mBoardNode, nodeConfiguration);
         nodeMainExecutor.execute(mVideoFragment.getImageView(), nodeConfiguration.setNodeName(AppConst.RoboBoard.VIDEO_NODE));
         nodeMainExecutor.execute(mBoardFragment.getDriveJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.DRIVE_JOYSTICK_NODE));
-        nodeMainExecutor.execute(mBoardFragment.getHeadJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.HEAD_JOYSTICK_NODE));
+//        nodeMainExecutor.execute(mBoardFragment.getHeadJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.HEAD_JOYSTICK_NODE));
         nodeMainExecutor.execute(mBoardOrientationNode, nodeConfiguration.setNodeName(AppConst.RoboBoard.ORIENTATION_NODE));
+    }
+
+    private static int getRotation (Context context) {
+        int orientation = 0;
+
+        if (context instanceof Activity) {
+            orientation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
+        } else {
+            orientation = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        }
+
+        switch (orientation) {
+            case Surface.ROTATION_0:
+                return 0;
+            case Surface.ROTATION_90:
+                return 90;
+            case Surface.ROTATION_180:
+                return 180;
+            case Surface.ROTATION_270:
+                return 270;
+            default:
+                return 0;
+        }
     }
 }

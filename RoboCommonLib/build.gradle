@@ -3,13 +3,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-//        classpath 'com.android.tools.build:gradle:0.9.+'
-        classpath 'com.android.tools.build:gradle:0.10.4'
-        classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.12.0'
     }
 }
 apply plugin: 'android-library'
-apply plugin: 'android-test'
+apply plugin: 'robolectric'
+apply plugin: 'idea'
 
 repositories {
     mavenCentral()

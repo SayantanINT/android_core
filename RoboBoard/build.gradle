@@ -3,13 +3,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-//        classpath 'com.android.tools.build:gradle:0.9.+'
-        classpath 'com.android.tools.build:gradle:0.10.4'
-        classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.12.0'
     }
 }
 apply plugin: 'android'
-apply plugin: 'android-test'
+apply plugin: 'robolectric'
+apply plugin: 'idea'
 
 repositories {
     mavenCentral()
@@ -24,6 +24,10 @@ android {
         targetSdkVersion 19
         versionCode 4
         versionName "2.2.0"
+    }
+
+    dexOptions {
+        preDexLibraries = false
     }
 
     if(project.hasProperty("RobotMitya.properties")
@@ -52,6 +56,9 @@ android {
 
     packagingOptions {
         /* https://github.com/rosjava/android_core/issues/194 */
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
     }

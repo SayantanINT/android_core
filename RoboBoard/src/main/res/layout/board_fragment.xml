@@ -461,4 +461,12 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true" />
 
+    <ru.robotmitya.roboboard.OrientationView
+        android:id="@+id/head_orientation"
+        android:layout_width="@dimen/joystick_size"
+        android:layout_height="@dimen/joystick_size"
+        android:layout_margin="@dimen/joystick_margin"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true" />
+
 </RelativeLayout>

@@ -4,4 +4,6 @@
     <color name="board_button_background_color">#9a000000</color>
     <color name="board_button_background_pressed_color">#ffaaaaaa</color>
     <color name="board_button_checked_stroke_color">#ff33b5e5</color>
+    <color name="orientation_pointer_enabled_color">#ff436f87</color>
+    <color name="orientation_pointer_disabled_color">#ffaaaaaa</color>
 </resources>

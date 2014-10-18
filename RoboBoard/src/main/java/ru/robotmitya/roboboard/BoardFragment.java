@@ -44,6 +44,7 @@ public class BoardFragment extends Fragment {
 
     private BoardJoystickView mDriveJoystick;
     private BoardJoystickView mHeadJoystick;
+    private OrientationView mHeadOrientation;
 
     private ImageView mImageViewRobotBattery;
     private ImageView mImageViewRobotPlugged;
@@ -204,13 +205,13 @@ public class BoardFragment extends Fragment {
     }
 
     private void setHeadJoystickVisibility() {
-        int visibility;
         if (SettingsFragment.getRemoteControlMode() == SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
-            visibility = View.VISIBLE;
+            mHeadJoystick.setVisibility(View.VISIBLE);
+            mHeadOrientation.setVisibility(View.GONE);
         } else {
-            visibility = View.GONE;
+            mHeadJoystick.setVisibility(View.GONE);
+            mHeadOrientation.setVisibility(View.VISIBLE);
         }
-        mHeadJoystick.setVisibility(visibility);
     }
 
     @Override
@@ -320,6 +321,7 @@ public class BoardFragment extends Fragment {
         mDriveJoystick.setTopicName(AppConst.RoboHead.DRIVE_JOYSTICK_TOPIC);
         mHeadJoystick = (BoardJoystickView) result.findViewById(R.id.head_joystick);
         mHeadJoystick.setTopicName(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
+        mHeadOrientation = (OrientationView) result.findViewById(R.id.head_orientation);
         setHeadJoystickVisibility();
 
 

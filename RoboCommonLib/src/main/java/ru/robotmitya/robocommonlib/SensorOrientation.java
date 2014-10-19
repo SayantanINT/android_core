@@ -23,6 +23,7 @@ public abstract class SensorOrientation implements SensorEventListener {
 
     private boolean mCalibrationEnabled = false;
     private Quaternion mCalibration = new Quaternion().idt();
+    private Quaternion mCalibrationExtraRotation = new Quaternion().idt();
     private boolean mInitNewCalibration = false;
 
     /**
@@ -111,6 +112,7 @@ public abstract class SensorOrientation implements SensorEventListener {
         }
 
         deviceToWorld.mulLeft(mCalibration);
+        deviceToWorld.mulLeft(mCalibrationExtraRotation);
     }
 
     @SuppressWarnings("unused")
@@ -119,11 +121,22 @@ public abstract class SensorOrientation implements SensorEventListener {
     }
 
     @SuppressWarnings("unused")
+    public void calibrate(Quaternion extraRotation) {
+        if (!mCalibrationEnabled) {
+            return;
+        }
+
+        mCalibrationExtraRotation.set(extraRotation);
+        mInitNewCalibration = true;
+    }
+
+    @SuppressWarnings("unused")
     public void calibrate() {
         if (!mCalibrationEnabled) {
             return;
         }
 
+        mCalibrationExtraRotation.idt();
         mInitNewCalibration = true;
     }
 

@@ -23,7 +23,7 @@ public class OrientationView extends View {
     private float mStrokeWidth;
     private float mScale;
 
-    private float mX = 1f;
+    private float mX = 0f;
     private float mY = 0f;
 
     private Vector2 mViewCenter = new Vector2();

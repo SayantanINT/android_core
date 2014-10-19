@@ -2,6 +2,7 @@ package ru.robotmitya.roboboard;
 
 import android.content.Context;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
@@ -28,8 +29,8 @@ public class BoardOrientationNode implements NodeMain {
      * @param screenRotation - 0, 90, 180 or 270.
      */
     public BoardOrientationNode(Context context, int screenRotation) {
-        mSensorOrientation = new SensorGyroscopeOrientation(context, 0.98f);
-        mSensorOrientation.setCalibrationEnabled(true);
+        mSensorOrientation = new SensorGyroscopeMagneticOrientation(context, 0.98f);
+        mSensorOrientation.setCalibrationEnabled(false);
         mSensorOrientation.setRotation(screenRotation);
     }
 
@@ -49,29 +50,30 @@ public class BoardOrientationNode implements NodeMain {
             @Override
             public void run() {
                 Vector3 forward = new Vector3(1, 0, 0);
-                mSensorOrientation.getDeviceToWorld().conjugate().transform(forward);
+//                mSensorOrientation.getDeviceToWorld().conjugate().transform(forward);
+                mSensorOrientation.getDeviceToWorld().transform(forward);
                 Log.d(this, "forward: " + String.format("%+3.2f, %+3.2f, %+3.2f", forward.x, forward.y, forward.z));
 
-                double azimuthValue = 0;
-                double pitchValue = 0;
-                Log.d(this, "azimuth: " + azimuthValue);
-                Log.d(this, "roll: " + pitchValue);
-
-                try {
-                    Twist message = mPublisher.newMessage();
-                    message.getAngular().setX(0);
-                    message.getAngular().setY(0);
-                    message.getAngular().setZ(azimuthValue);
-                    message.getLinear().setX(pitchValue);
-                    message.getLinear().setY(0);
-                    message.getLinear().setZ(0);
-                    mPublisher.publish(message);
-                    Log.messagePublished(BoardOrientationNode.this, mPublisher.getTopicName().toString(), message.toString());
-                } catch (NullPointerException e) {
-                    Log.e(this, e.getMessage());
-                }
+//                double azimuthValue = 0;
+//                double pitchValue = 0;
+//                Log.d(this, "azimuth: " + azimuthValue);
+//                Log.d(this, "roll: " + pitchValue);
+//
+//                try {
+//                    Twist message = mPublisher.newMessage();
+//                    message.getAngular().setX(0);
+//                    message.getAngular().setY(0);
+//                    message.getAngular().setZ(azimuthValue);
+//                    message.getLinear().setX(pitchValue);
+//                    message.getLinear().setY(0);
+//                    message.getLinear().setZ(0);
+//                    mPublisher.publish(message);
+//                    Log.messagePublished(BoardOrientationNode.this, mPublisher.getTopicName().toString(), message.toString());
+//                } catch (NullPointerException e) {
+//                    Log.e(this, e.getMessage());
+//                }
             }
-        }, 0, 80);
+        }, 0, 1000); //80);
     }
 
     @Override

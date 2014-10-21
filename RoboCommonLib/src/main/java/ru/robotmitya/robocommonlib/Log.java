@@ -1,5 +1,7 @@
 package ru.robotmitya.robocommonlib;
 
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import org.ros.node.NodeMain;
 
 /**
@@ -62,6 +64,16 @@ public final class Log {
         if (ENABLE_LOG) {
             android.util.Log.d(LOG_TAG, source.getClass().getName() + " => " + msg);
         }
+    }
+
+    public static String fmt(final Vector3 v) {
+        return String.format("%+3.1f, %+3.1f, %+3.1f", v.x, v.y, v.z);
+    }
+
+    public static String fmt(final Quaternion q) {
+        Vector3 v = new Vector3();
+        float a = q.getAxisAngle(v);
+        return String.format("%+3.1f, %+3.1f, %+3.1f", v.x, v.y, v.z) + ", " + String.format("%+3.1f", a);
     }
 
     /**

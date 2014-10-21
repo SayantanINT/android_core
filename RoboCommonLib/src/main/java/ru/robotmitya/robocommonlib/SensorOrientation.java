@@ -24,7 +24,8 @@ public abstract class SensorOrientation implements SensorEventListener {
     private boolean mCalibrationEnabled = false;
     private Quaternion mCalibration = new Quaternion().idt();
     private Quaternion mCalibrationExtraRotation = new Quaternion().idt();
-    private boolean mInitNewCalibration = false;
+    private boolean mInitNewCalibration;
+    private boolean mHasDeviceToWorld;
 
     /**
      * The rotation of the device with respect to its native orientation: 0, 90, 180 or 270 degrees.
@@ -43,6 +44,8 @@ public abstract class SensorOrientation implements SensorEventListener {
             return;
         }
 
+        mInitNewCalibration = false;
+        mHasDeviceToWorld = false;
         registerListener();
 
         started = true;
@@ -55,6 +58,8 @@ public abstract class SensorOrientation implements SensorEventListener {
         }
 
         mSensorManager.unregisterListener(this);
+        mInitNewCalibration = false;
+        mHasDeviceToWorld = false;
 
         stopped = true;
         started = false;
@@ -73,6 +78,7 @@ public abstract class SensorOrientation implements SensorEventListener {
         mReadWriteLock.writeLock().lock();
         try {
             mDeviceToWorld.set(deviceToWorld);
+            mHasDeviceToWorld = true;
         } finally {
             mReadWriteLock.writeLock().unlock();
         }
@@ -95,6 +101,10 @@ public abstract class SensorOrientation implements SensorEventListener {
     }
 
     protected void finalScreenRotation(final Quaternion deviceToWorld) {
+        if (!mHasDeviceToWorld) {
+            return;
+        }
+
         if (mRotation != 0) {
             mOrientationRotation.set(mOrientationRotationAxis, mRotation);
             deviceToWorld.mul(mOrientationRotation);
@@ -102,17 +112,29 @@ public abstract class SensorOrientation implements SensorEventListener {
     }
 
     protected void updateToCalibrated(final Quaternion deviceToWorld) {
-        if (!mCalibrationEnabled) {
+        if (!mCalibrationEnabled || !mHasDeviceToWorld) {
             return;
         }
 
+//        boolean newCal = false;
         if (mInitNewCalibration) {
+//            newCal = true;
+//            Log.d(this, "=== 4-1    d2w = " + Log.fmt(deviceToWorld));
+//            Log.d(this, "=== 4-2    cal = " + Log.fmt(mCalibration));
             mCalibration.set(deviceToWorld).nor().conjugate();
+//            Log.d(this, "=== 4-3    cal = " + Log.fmt(mCalibration));
             mInitNewCalibration = false;
         }
 
         deviceToWorld.mulLeft(mCalibration);
+//        if (newCal) {
+//            Log.d(this, "=== 4-4    d2w = " + Log.fmt(deviceToWorld));
+//            Log.d(this, "=== 4-5    exR = " + Log.fmt(mCalibrationExtraRotation));
+//        }
         deviceToWorld.mulLeft(mCalibrationExtraRotation);
+//        if (newCal) {
+//            Log.d(this, "=== 4-6    d2w = " + Log.fmt(deviceToWorld));
+//        }
     }
 
     @SuppressWarnings("unused")

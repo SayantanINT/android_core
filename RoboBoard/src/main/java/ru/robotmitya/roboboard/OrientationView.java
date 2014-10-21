@@ -1,8 +1,10 @@
 package ru.robotmitya.roboboard;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -11,6 +13,7 @@ import android.widget.Toast;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.jetbrains.annotations.NotNull;
+import ru.robotmitya.robocommonlib.Log;
 
 public class OrientationView extends View {
     private static final float POINTER_SCALE = 1f / 10f;
@@ -125,12 +128,14 @@ public class OrientationView extends View {
 
             @Override
             public void onLongPress(MotionEvent e) {
-                Toast.makeText(getContext(), "onLongPress", Toast.LENGTH_SHORT).show();
+                Log.d(this, "calibrate pressed");
+                Intent intent = new Intent(BoardOrientationNode.BROADCAST_BOARD_ORIENTATION_CALIBRATE);
+                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
             }
 
             @Override
             public boolean onDoubleTap(MotionEvent e) {
-                Toast.makeText(getContext(), "onDoubleTap", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getContext(), "onDoubleTap", Toast.LENGTH_SHORT).show();
                 return true;
             }
         });

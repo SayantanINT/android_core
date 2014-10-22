@@ -5,8 +5,8 @@ import android.content.Context;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import org.ros.namespace.GraphName;
@@ -26,10 +26,6 @@ import ru.robotmitya.robocommonlib.*;
  *
  */
 public class BoardOrientationNode implements NodeMain {
-    private static float PI_DIV_2 = MathUtils.PI / 2f;
-    private static float MIN_VALUE = -1f;
-    private static float MAX_VALUE = 1f;
-
     private Context mContext;
 
     private BroadcastReceiver mBroadcastReceiverCalibrate;
@@ -71,28 +67,28 @@ public class BoardOrientationNode implements NodeMain {
             @Override
             public void run() {
                 if (mStarting) {
-                    Log.d(this, "================");
-                    calibrate();
+                    calibrate(false);
                     mStarting = false;
                 }
 
                 Quaternion q = mSensorOrientation.getDeviceToWorld();
 
-                float azimuthValue = q.getYawRad();
-                if (azimuthValue > PI_DIV_2) {
-                    azimuthValue = PI_DIV_2;
-                } else if (azimuthValue < -PI_DIV_2) {
-                    azimuthValue = -PI_DIV_2;
-                }
-                azimuthValue /= PI_DIV_2;
+                final float horizontalRange = RoboState.getHeadHorizontalServoMaxRad() - RoboState.getHeadHorizontalServoMinRad();
+                final float verticalRange = RoboState.getHeadVerticalServoMaxRad() - RoboState.getHeadVerticalServoMinRad();
 
-                float pitchValue = q.getPitchRad();
-                if (pitchValue > PI_DIV_2) {
-                    pitchValue = PI_DIV_2;
-                } else if (pitchValue < -PI_DIV_2) {
-                    pitchValue = -PI_DIV_2;
+                float azimuthValue = q.getYawRad() * 2 / horizontalRange;
+                if (azimuthValue > 1) {
+                    azimuthValue = 1;
+                } else if (azimuthValue < -1) {
+                    azimuthValue = -1;
                 }
-                pitchValue /= PI_DIV_2;
+
+                float pitchValue = q.getPitchRad() * 2 / verticalRange;
+                if (pitchValue > 1) {
+                    pitchValue = 1;
+                } else if (pitchValue < -1) {
+                    pitchValue = -1;
+                }
 
                 mPointerPositionIntent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_POINTER_POSITION_EXTRA_AZIMUTH, azimuthValue);
                 mPointerPositionIntent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_POINTER_POSITION_EXTRA_PITCH, pitchValue);
@@ -121,7 +117,7 @@ public class BoardOrientationNode implements NodeMain {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(BoardOrientationNode.this, "broadcast received: calibrate");
-                calibrate();
+                calibrate(true);
             }
         };
 
@@ -160,7 +156,11 @@ public class BoardOrientationNode implements NodeMain {
     public void onError(Node node, Throwable throwable) {
     }
 
-    private void calibrate() {
+    private void calibrate(boolean vibrate) {
+        if (vibrate) {
+            Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+            vibrator.vibrate(50);
+        }
         mSensorOrientation.calibrate(new Quaternion(new Vector3(0, 0, 1), 90));
     }
 }

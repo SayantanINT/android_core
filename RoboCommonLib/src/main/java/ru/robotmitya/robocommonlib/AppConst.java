@@ -17,25 +17,32 @@ public final class AppConst {
 
         public final class Broadcast {
             // From BoardNode to BoardFragment:
-            public static final String BROADCAST_MESSAGE_TO_GUI_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-GUI";
-            public static final String BROADCAST_MESSAGE_TO_GUI_EXTRA_NAME = "message";
+            public static final String MESSAGE_TO_GUI_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-GUI";
+            public static final String MESSAGE_TO_GUI_EXTRA_NAME = "message";
 
             // From BoardFragment to BoardNode:
-            public static final String BROADCAST_MESSAGE_TO_BODY_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-BODY";
-            public static final String BROADCAST_MESSAGE_TO_BODY_EXTRA_NAME = "message";
+            public static final String MESSAGE_TO_BODY_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-BODY";
+            public static final String MESSAGE_TO_BODY_EXTRA_NAME = "message";
 
-            public static final String BROADCAST_MESSAGE_TO_EYE_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-EYE";
-            public static final String BROADCAST_MESSAGE_TO_EYE_EXTRA_NAME = "message";
+            public static final String MESSAGE_TO_EYE_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-EYE";
+            public static final String MESSAGE_TO_EYE_EXTRA_NAME = "message";
 
-            public static final String BROADCAST_MESSAGE_TO_FACE_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-FACE";
-            public static final String BROADCAST_MESSAGE_TO_FACE_EXTRA_NAME = "message";
+            public static final String MESSAGE_TO_FACE_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-FACE";
+            public static final String MESSAGE_TO_FACE_EXTRA_NAME = "message";
 
-            public static final String BROADCAST_MESSAGE_TO_REFLEX_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-REFLEX";
-            public static final String BROADCAST_MESSAGE_TO_REFLEX_EXTRA_NAME = "message";
+            public static final String MESSAGE_TO_REFLEX_NAME = "ru.robotmitya.roboboard.MESSAGE-TO-REFLEX";
+            public static final String MESSAGE_TO_REFLEX_EXTRA_NAME = "message";
 
             // Will be used to send signal to BoardNode to send command that will change remote control mode in RoboHead.
             //todo Send command to RoboHead to change remote control mode
-            public static final String BROADCAST_REMOTE_CONTROL_MODE_SETTINGS_NAME = "ru.robotmitya.robohead.REMOTE_CONTROL_MODE_SETTINGS";
+            public static final String REMOTE_CONTROL_MODE_SETTINGS_NAME = "ru.robotmitya.robohead.REMOTE_CONTROL_MODE_SETTINGS";
+
+            public static final String ORIENTATION_CALIBRATE = "ru.robotmitya.roboboard.BOARD-ORIENTATION-CALIBRATE";
+            public static final String ORIENTATION_ACTIVATE = "ru.robotmitya.roboboard.BOARD-ORIENTATION-ACTIVATE";
+            public static final String ORIENTATION_ACTIVATE_EXTRA_ENABLED = "enabled";
+            public static final String ORIENTATION_POINTER_POSITION = "ru.robotmitya.roboboard.BOARD-ORIENTATION-POINTER-POSITION";
+            public static final String ORIENTATION_POINTER_POSITION_EXTRA_AZIMUTH = "x";
+            public static final String ORIENTATION_POINTER_POSITION_EXTRA_PITCH = "y";
         }
     }
 

@@ -1,5 +1,7 @@
 package ru.robotmitya.robocommonlib;
 
+import com.badlogic.gdx.math.MathUtils;
+
 /**
  * Created by dmitrydzz on 3/23/14.
  *
@@ -20,6 +22,11 @@ public class RoboState {
     private final static short mHeadHorizontalServoMaxDegree = 180;
     private final static short mHeadVerticalServoMinDegree = 0;
     private final static short mHeadVerticalServoMaxDegree = 90;
+
+    private final static float mHeadHorizontalServoMinRad = mHeadHorizontalServoMinDegree * MathUtils.degreesToRadians;
+    private final static float mHeadHorizontalServoMaxRad = mHeadHorizontalServoMaxDegree * MathUtils.degreesToRadians;
+    private final static float mHeadVerticalServoMinRad = mHeadVerticalServoMinDegree * MathUtils.degreesToRadians;
+    private final static float mHeadVerticalServoMaxRad = mHeadVerticalServoMaxDegree * MathUtils.degreesToRadians;
 
     private static short mMood;
 
@@ -154,6 +161,22 @@ public class RoboState {
 
     public static short getHeadVerticalServoMaxDegree() {
         return mHeadVerticalServoMaxDegree;
+    }
+
+    public static float getHeadHorizontalServoMinRad() {
+        return mHeadHorizontalServoMinRad;
+    }
+
+    public static float getHeadHorizontalServoMaxRad() {
+        return mHeadHorizontalServoMaxRad;
+    }
+
+    public static float getHeadVerticalServoMinRad() {
+        return mHeadVerticalServoMinRad;
+    }
+
+    public static float getHeadVerticalServoMaxRad() {
+        return mHeadVerticalServoMaxRad;
     }
 
 

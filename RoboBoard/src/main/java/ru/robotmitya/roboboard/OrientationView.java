@@ -31,7 +31,7 @@ public class OrientationView extends View {
 
     private Vector2 mViewCenter = new Vector2();
     private Vector2 mPointerCenter = new Vector2();
-    private Vector2 mPreviousPointerCenter = new Vector2();
+    private Vector2 mPreviousPointerCenter;
 
     private Paint mPaintBackground;
     private Paint mPaintPointer;
@@ -156,13 +156,12 @@ public class OrientationView extends View {
 
             @Override
             public void onLongPress(MotionEvent e) {
-                Toast.makeText(getContext(), R.string.board_orientation_calibrate_hint, Toast.LENGTH_SHORT).show();
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(mCommandCalibrateIntent);
+                calibrate();
             }
 
             @Override
             public boolean onDoubleTap(MotionEvent e) {
-//                Toast.makeText(getContext(), "onDoubleTap", Toast.LENGTH_SHORT).show();
+                calibrate();
                 return true;
             }
         });
@@ -172,5 +171,10 @@ public class OrientationView extends View {
     @Override
     public boolean onTouchEvent(@NotNull MotionEvent event) {
         return mGestureDetector.onTouchEvent(event);
+    }
+
+    private void calibrate() {
+        Toast.makeText(getContext(), R.string.board_orientation_calibrate_hint, Toast.LENGTH_SHORT).show();
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(mCommandCalibrateIntent);
     }
 }

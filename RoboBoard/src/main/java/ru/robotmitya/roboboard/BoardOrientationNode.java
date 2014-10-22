@@ -43,7 +43,7 @@ public class BoardOrientationNode implements NodeMain {
      */
     public BoardOrientationNode(Context context, int screenRotation) {
         mContext = context;
-        mSensorOrientation = new SensorGyroscopeMagneticOrientation(context, 0.98f);
+        mSensorOrientation = new SensorGyroscopeGravityOrientation(context, 0.98f);
         mSensorOrientation.setRotation(screenRotation);
         mSensorOrientation.setCalibrationEnabled(true);
     }

@@ -13,7 +13,7 @@ import android.widget.Toast;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.jetbrains.annotations.NotNull;
-import ru.robotmitya.robocommonlib.Log;
+import ru.robotmitya.robocommonlib.AppConst;
 
 public class OrientationView extends View {
     private static final float POINTER_SCALE = 1f / 10f;
@@ -31,9 +31,13 @@ public class OrientationView extends View {
 
     private Vector2 mViewCenter = new Vector2();
     private Vector2 mPointerCenter = new Vector2();
+    private Vector2 mPreviousPointerCenter = new Vector2();
 
     private Paint mPaintBackground;
     private Paint mPaintPointer;
+
+    private Intent mCommandCalibrateIntent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_CALIBRATE);
+    private Intent mCommandActivateIntent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE);
 
     @SuppressWarnings("UnusedDeclaration")
     public OrientationView(Context context) {
@@ -51,6 +55,20 @@ public class OrientationView extends View {
     public OrientationView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public void setPosition(float x, float y) {
+        x = -x;
+        if (x < -1) x = -1;
+        else if (x > 1) x = 1;
+        mX = x;
+
+        y = -y;
+        if (y < -1) y = -1;
+        else if (y > 1) y = 1;
+        mY = y;
+
+        invalidate();
     }
 
     @Override
@@ -80,7 +98,13 @@ public class OrientationView extends View {
         mPointerCenter.scl(mScale);
         mPointerCenter.add(mViewCenter);
 
-        canvas.drawCircle(mPointerCenter.x, mPointerCenter.y, mPointerRadius, mPaintPointer);
+        if (mPreviousPointerCenter == null) {
+            mPreviousPointerCenter = new Vector2(mPointerCenter);
+        } else {
+            mPreviousPointerCenter.lerp(mPointerCenter, 0.4f);
+        }
+
+        canvas.drawCircle(mPreviousPointerCenter.x, mPreviousPointerCenter.y, mPointerRadius, mPaintPointer);
     }
 
     private void transformSquareToCircle(Vector2 p) {
@@ -121,16 +145,19 @@ public class OrientationView extends View {
 
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
-                setEnabled(!isEnabled());
-                Toast.makeText(getContext(), "onSingleTapConfirmed", Toast.LENGTH_SHORT).show();
+                final boolean enabled = !isEnabled();
+                setEnabled(enabled);
+                mCommandActivateIntent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, enabled);
+                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(mCommandActivateIntent);
+                final int hintId = enabled ? R.string.board_orientation_sensor_enabled_hint : R.string.board_orientation_sensor_disabled_hint;
+                Toast.makeText(getContext(), hintId, Toast.LENGTH_SHORT).show();
                 return true;
             }
 
             @Override
             public void onLongPress(MotionEvent e) {
-                Log.d(this, "calibrate pressed");
-                Intent intent = new Intent(BoardOrientationNode.BROADCAST_BOARD_ORIENTATION_CALIBRATE);
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+                Toast.makeText(getContext(), R.string.board_orientation_calibrate_hint, Toast.LENGTH_SHORT).show();
+                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(mCommandCalibrateIntent);
             }
 
             @Override

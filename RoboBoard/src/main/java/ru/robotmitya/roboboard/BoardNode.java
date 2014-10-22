@@ -52,7 +52,7 @@ public class BoardNode implements NodeMain {
         mBroadcastReceiverForBodyTopic = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_BODY_EXTRA_NAME);
+                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.MESSAGE_TO_BODY_EXTRA_NAME);
                 publishToBodyTopic(command);
             }
         };
@@ -60,7 +60,7 @@ public class BoardNode implements NodeMain {
         mBroadcastReceiverForEyeTopic = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_EYE_EXTRA_NAME);
+                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.MESSAGE_TO_EYE_EXTRA_NAME);
                 publishToEyeTopic(command);
             }
         };
@@ -68,7 +68,7 @@ public class BoardNode implements NodeMain {
         mBroadcastReceiverForFaceTopic = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_FACE_EXTRA_NAME);
+                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.MESSAGE_TO_FACE_EXTRA_NAME);
                 publishToFaceTopic(command);
             }
         };
@@ -76,7 +76,7 @@ public class BoardNode implements NodeMain {
         mBroadcastReceiverForReflexTopic = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_REFLEX_EXTRA_NAME);
+                String command = intent.getStringExtra(AppConst.RoboBoard.Broadcast.MESSAGE_TO_REFLEX_EXTRA_NAME);
                 publishToReflexTopic(command);
             }
         };
@@ -123,8 +123,8 @@ public class BoardNode implements NodeMain {
                     }
                 }
 
-                Intent intent = new Intent(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_GUI_NAME);
-                intent.putExtra(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_GUI_EXTRA_NAME, messageBody);
+                Intent intent = new Intent(AppConst.RoboBoard.Broadcast.MESSAGE_TO_GUI_NAME);
+                intent.putExtra(AppConst.RoboBoard.Broadcast.MESSAGE_TO_GUI_EXTRA_NAME, messageBody);
                 LocalBroadcastManager.getInstance(BoardNode.this.mContext).sendBroadcast(intent);
             }
         });
@@ -144,13 +144,13 @@ public class BoardNode implements NodeMain {
 
     private void initializeBroadcasts() {
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverForBodyTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_BODY_NAME));
+                mBroadcastReceiverForBodyTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_BODY_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverForEyeTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_EYE_NAME));
+                mBroadcastReceiverForEyeTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_EYE_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverForFaceTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_FACE_NAME));
+                mBroadcastReceiverForFaceTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_FACE_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverForReflexTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.BROADCAST_MESSAGE_TO_REFLEX_NAME));
+                mBroadcastReceiverForReflexTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_REFLEX_NAME));
     }
 
     private void finalizeBroadcasts() {

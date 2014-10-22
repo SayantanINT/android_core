@@ -20,4 +20,9 @@
     <string name="option_remote_control_mode_value_device_orientation">1</string>
 
     <string name="board_volts">V</string>
+
+
+    <string name="board_orientation_calibrate_hint">Calibration</string>
+    <string name="board_orientation_sensor_enabled_hint">Orientation sensor enabled</string>
+    <string name="board_orientation_sensor_disabled_hint">Orientation sensor disabled</string>
 </resources>

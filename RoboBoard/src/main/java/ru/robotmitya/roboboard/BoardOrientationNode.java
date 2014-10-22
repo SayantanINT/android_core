@@ -26,18 +26,21 @@ import ru.robotmitya.robocommonlib.*;
  *
  */
 public class BoardOrientationNode implements NodeMain {
-    public static String BROADCAST_BOARD_ORIENTATION_CALIBRATE = "ru.robotmitya.roboboard.BOARD-ORIENTATION-CALIBRATE";
-
-    private static float PI_DIV_2 = MathUtils.PI;
+    private static float PI_DIV_2 = MathUtils.PI / 2f;
+    private static float MIN_VALUE = -1f;
+    private static float MAX_VALUE = 1f;
 
     private Context mContext;
 
     private BroadcastReceiver mBroadcastReceiverCalibrate;
+    private BroadcastReceiver mBroadcastReceiverActivate;
+    private Intent mPointerPositionIntent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_POINTER_POSITION);
 
     private Publisher<Twist> mPublisher;
     private SensorOrientation mSensorOrientation;
     private Timer mPublisherTimer;
     private boolean mStarting;
+    private boolean mEnabled;
 
     /**
      * @param screenRotation - 0, 90, 180 or 270.
@@ -56,6 +59,8 @@ public class BoardOrientationNode implements NodeMain {
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
+        mEnabled = false;
+
         mPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC, Twist._TYPE);
 
         mSensorOrientation.start();
@@ -71,61 +76,80 @@ public class BoardOrientationNode implements NodeMain {
                     mStarting = false;
                 }
 
-                Vector3 x = new Vector3(1, 0, 0);
-                Vector3 y = new Vector3(0, 1, 0);
-                Vector3 z = new Vector3(0, 0, 1);
                 Quaternion q = mSensorOrientation.getDeviceToWorld();
-                q.transform(x);
-                q.transform(y);
-                q.transform(z);
-                Log.d(this, "==== " +
-                        "x(" + Log.fmt(x) + ") " +
-                        "y(" + Log.fmt(y) + ") " +
-                        "z(" + Log.fmt(z) + ")");
 
-                @SuppressWarnings("SuspiciousNameCombination")
-                float azimuthValue = MathUtils.atan2(z.x, z.z);
-                azimuthValue = azimuthValue > PI_DIV_2 ? PI_DIV_2 : azimuthValue;
-                float pitchValue = -MathUtils.atan2(z.y, z.z);
-                pitchValue = pitchValue > PI_DIV_2 ? PI_DIV_2 : pitchValue;
-                Log.d(this, "*** azimuth: " + azimuthValue + "   pitch: " + pitchValue);
+                float azimuthValue = q.getYawRad();
+                if (azimuthValue > PI_DIV_2) {
+                    azimuthValue = PI_DIV_2;
+                } else if (azimuthValue < -PI_DIV_2) {
+                    azimuthValue = -PI_DIV_2;
+                }
+                azimuthValue /= PI_DIV_2;
 
-                try {
-                    Twist message = mPublisher.newMessage();
-                    message.getAngular().setX(0);
-                    message.getAngular().setY(0);
-                    message.getAngular().setZ(azimuthValue);
-                    message.getLinear().setX(pitchValue);
-                    message.getLinear().setY(0);
-                    message.getLinear().setZ(0);
-                    mPublisher.publish(message);
-                    Log.messagePublished(BoardOrientationNode.this, mPublisher.getTopicName().toString(), message.toString());
-                } catch (NullPointerException e) {
-                    Log.e(this, e.getMessage());
+                float pitchValue = q.getPitchRad();
+                if (pitchValue > PI_DIV_2) {
+                    pitchValue = PI_DIV_2;
+                } else if (pitchValue < -PI_DIV_2) {
+                    pitchValue = -PI_DIV_2;
+                }
+                pitchValue /= PI_DIV_2;
+
+                mPointerPositionIntent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_POINTER_POSITION_EXTRA_AZIMUTH, azimuthValue);
+                mPointerPositionIntent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_POINTER_POSITION_EXTRA_PITCH, pitchValue);
+                LocalBroadcastManager.getInstance(mContext).sendBroadcast(mPointerPositionIntent);
+
+
+                if (mEnabled) {
+                    try {
+                        Twist message = mPublisher.newMessage();
+                        message.getAngular().setX(0);
+                        message.getAngular().setY(0);
+                        message.getAngular().setZ(azimuthValue);
+                        message.getLinear().setX(pitchValue);
+                        message.getLinear().setY(0);
+                        message.getLinear().setZ(0);
+                        mPublisher.publish(message);
+                        Log.messagePublished(BoardOrientationNode.this, mPublisher.getTopicName().toString(), message.toString());
+                    } catch (NullPointerException e) {
+                        Log.e(this, e.getMessage());
+                    }
                 }
             }
-        }, 2000, 80);
+        }, 2000, 40);
 
         mBroadcastReceiverCalibrate = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(BoardOrientationNode.this, "broadcast received: calibrate orientation ===");
+                Log.d(BoardOrientationNode.this, "broadcast received: calibrate");
                 calibrate();
             }
         };
 
+        mBroadcastReceiverActivate = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(BoardOrientationNode.this, "broadcast received: activate");
+                mEnabled = intent.getBooleanExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, false);
+            }
+        };
+
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverCalibrate, new IntentFilter(BoardOrientationNode.BROADCAST_BOARD_ORIENTATION_CALIBRATE));
+                mBroadcastReceiverCalibrate, new IntentFilter(AppConst.RoboBoard.Broadcast.ORIENTATION_CALIBRATE));
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(
+                mBroadcastReceiverActivate, new IntentFilter(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE));
     }
 
     @Override
     public void onShutdown(Node node) {
+        mEnabled = false;
+
         mSensorOrientation.stop();
 
         mPublisherTimer.cancel();
         mPublisherTimer.purge();
 
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverCalibrate);
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverActivate);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ru.robotmitya.robohead;
 
+import com.badlogic.gdx.math.Vector2;
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
@@ -14,16 +15,18 @@ import ru.robotmitya.robocommonlib.Log;
 import ru.robotmitya.robocommonlib.MessageHelper;
 import ru.robotmitya.robocommonlib.RoboState;
 import ru.robotmitya.robocommonlib.Rs;
-import ru.robotmitya.robocommonlib.SensorValueAdapter;
 
 /**
  * Created by dmitrydzz on 4/12/14.
  *
  */
 public class HeadJoystickAnalyzerNode implements NodeMain {
+    private static final float SMOOTH_FACTOR = 0.9f;
+
     private Publisher<std_msgs.String> mBodyPublisher;
-    private final SensorValueAdapter mHorizontalValueAdapter = new SensorValueAdapter(0.01, 0.4);
-    private final SensorValueAdapter mVerticalValueAdapter = new SensorValueAdapter(0.005, 0.4);
+
+    private final Vector2 mPosition = new Vector2();
+    private Vector2 mSmoothedPosition;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -40,30 +43,26 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
             public void onNewMessage(geometry_msgs.Twist message) {
                 Vector3 linear = message.getLinear();
                 Vector3 angular = message.getAngular();
-                double x = -angular.getZ();
-                double y = linear.getX();
+                float x = (float) -angular.getZ();
+                float y = (float) linear.getX();
                 if (RoboState.getIsReverse()) {
                     y = -y;
                 }
-                JoystickPosition joystickPosition = new JoystickPosition(x, y);
-                correctCoordinatesFromCycleToSquareArea(joystickPosition);
-                // Round:
-//                x = (double)Math.round(joystickPosition.mX * 100) / 100F;
-//                y = (double)Math.round(joystickPosition.mY * 50) / 50F;
-//                joystickPosition.mX = x;
-//                joystickPosition.mY = y;
-                mHorizontalValueAdapter.put(joystickPosition.mX);
-                mVerticalValueAdapter.put(joystickPosition.mY);
-                joystickPosition.mX = mHorizontalValueAdapter.get();
-                joystickPosition.mY = mVerticalValueAdapter.get();
+                mPosition.set(x, y);
+                correctCoordinatesFromCycleToSquareArea(mPosition);
+                if (mSmoothedPosition == null) {
+                    mSmoothedPosition = new Vector2(mPosition);
+                } else {
+                    mSmoothedPosition.lerp(mPosition, SMOOTH_FACTOR);
+                }
 
-                Log.messageReceived(HeadJoystickAnalyzerNode.this, String.format("x=%.3f, y=%.3f", joystickPosition.mX, joystickPosition.mY));
+                Log.messageReceived(HeadJoystickAnalyzerNode.this, String.format("x=%.3f, y=%.3f", mSmoothedPosition.x, mSmoothedPosition.y));
 
                 // Reverse vertical:
-                joystickPosition.mY = -joystickPosition.mY;
+                mSmoothedPosition.y = -mSmoothedPosition.y;
 
-                short horizontalDegree = getHorizontalDegree(joystickPosition);
-                short verticalDegree = getVerticalDegree(joystickPosition);
+                short horizontalDegree = getHorizontalDegree(mSmoothedPosition);
+                short verticalDegree = getVerticalDegree(mSmoothedPosition);
                 String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalPosition.ID, horizontalDegree);
                 String verticalCommand = MessageHelper.makeMessage(Rs.HeadVerticalPosition.ID, verticalDegree);
                 publishCommand(horizontalCommand);
@@ -84,63 +83,55 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
     public void onError(Node node, Throwable throwable) {
     }
 
-    private final class JoystickPosition {
-        public double mX;
-        public double mY;
-        public JoystickPosition(final double x, final double y) {
-            mX = x;
-            mY = y;
-        }
-    }
-
-    private static void correctCoordinatesFromCycleToSquareArea(final JoystickPosition pos) {
-        if ((pos.mX >= 0) && (pos.mY >= 0)) {
+    private static void correctCoordinatesFromCycleToSquareArea(final Vector2 pos) {
+        if ((pos.x >= 0) && (pos.y >= 0)) {
             correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-        } else if ((pos.mX < 0) && (pos.mY >= 0)) {
-            pos.mX = -pos.mX;
+        } else if ((pos.x < 0) && (pos.y >= 0)) {
+            pos.x = -pos.x;
             correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.mX = -pos.mX;
-        } else if ((pos.mX < 0) && (pos.mY < 0)) {
-            pos.mX = -pos.mX;
-            pos.mY = -pos.mY;
+            pos.x = -pos.x;
+        } else if ((pos.x < 0) && (pos.y < 0)) {
+            pos.x = -pos.x;
+            pos.y = -pos.y;
             correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.mX = -pos.mX;
-            pos.mY = -pos.mY;
-        } else if ((pos.mX >= 0) && (pos.mY < 0)) {
-            pos.mY = -pos.mY;
+            pos.x = -pos.x;
+            pos.y = -pos.y;
+        } else if ((pos.x >= 0) && (pos.y < 0)) {
+            pos.y = -pos.y;
             correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.mY = -pos.mY;
+            pos.y = -pos.y;
         }
 
-        pos.mX = pos.mX < -1 ? -1 : pos.mX;
-        pos.mX = pos.mX > 1 ? 1 : pos.mX;
-        pos.mY = pos.mY < -1 ? -1 : pos.mY;
-        pos.mY = pos.mY > 1 ? 1 : pos.mY;
+        pos.x = pos.x < -1 ? -1 : pos.x;
+        pos.x = pos.x > 1 ? 1 : pos.x;
+        pos.y = pos.y < -1 ? -1 : pos.y;
+        pos.y = pos.y > 1 ? 1 : pos.y;
     }
 
-    private static void correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(final JoystickPosition pos) {
+    @SuppressWarnings("SuspiciousNameCombination")
+    private static void correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(final Vector2 pos) {
         // To avoid div 0:
-        if (pos.mX == 0) {
+        if (pos.x == 0) {
             return;
         }
 
-        if ((pos.mX >= 0) && (pos.mY >= 0)) {
-            boolean firstSectorInOctet = pos.mX >= pos.mY;
+        if ((pos.x >= 0) && (pos.y >= 0)) {
+            boolean firstSectorInOctet = pos.x >= pos.y;
             if (!firstSectorInOctet) {
-                double temp = pos.mX;
-                pos.mX = pos.mY;
-                pos.mY = temp;
+                float temp = pos.x;
+                pos.x = pos.y;
+                pos.y = temp;
             }
 
-            double resultX = Math.sqrt((pos.mX * pos.mX) + (pos.mY * pos.mY));
-            double resultY = pos.mY * resultX / pos.mX;
-            pos.mX = resultX;
-            pos.mY = resultY;
+            float resultX = (float) Math.sqrt((pos.x * pos.x) + (pos.y * pos.y));
+            float resultY = pos.y * resultX / pos.x;
+            pos.x = resultX;
+            pos.y = resultY;
 
             if (!firstSectorInOctet) {
-                double temp = pos.mX;
-                pos.mX = pos.mY;
-                pos.mY = temp;
+                float temp = pos.x;
+                pos.x = pos.y;
+                pos.y = temp;
             }
         }
     }
@@ -152,17 +143,17 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
         Log.messagePublished(this, mBodyPublisher.getTopicName().toString(), command);
     }
 
-    private short getHorizontalDegree(final JoystickPosition pos) {
+    private short getHorizontalDegree(final Vector2 pos) {
         double min = RoboState.getHeadHorizontalServoMinDegree();
         double max = RoboState.getHeadHorizontalServoMaxDegree();
-        double result = ((1 - pos.mX) * ((max - min) / 2)) + min;
+        double result = ((1 - pos.x) * ((max - min) / 2)) + min;
         return (short)result;
     }
 
-    private short getVerticalDegree(final JoystickPosition pos) {
+    private short getVerticalDegree(final Vector2 pos) {
         double min = RoboState.getHeadVerticalServoMinDegree();
         double max = RoboState.getHeadVerticalServoMaxDegree();
-        double result = ((1 - pos.mY) * ((max - min) / 2)) + min;
+        double result = ((1 - pos.y) * ((max - min) / 2)) + min;
         return (short)result;
     }
 }

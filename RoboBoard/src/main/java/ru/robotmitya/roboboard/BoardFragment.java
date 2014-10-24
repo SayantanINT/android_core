@@ -220,6 +220,7 @@ public class BoardFragment extends Fragment {
         if (SettingsFragment.getRemoteControlMode() == SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
             mHeadJoystick.setVisibility(View.VISIBLE);
             mHeadOrientation.setVisibility(View.GONE);
+            mHeadOrientation.setEnabled(false);
         } else {
             mHeadJoystick.setVisibility(View.GONE);
             mHeadOrientation.setVisibility(View.VISIBLE);

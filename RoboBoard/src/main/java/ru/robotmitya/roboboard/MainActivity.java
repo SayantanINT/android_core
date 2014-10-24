@@ -81,7 +81,7 @@ public class MainActivity extends RosActivity {
         nodeMainExecutor.execute(mBoardNode, nodeConfiguration);
         nodeMainExecutor.execute(mVideoFragment.getImageView(), nodeConfiguration.setNodeName(AppConst.RoboBoard.VIDEO_NODE));
         nodeMainExecutor.execute(mBoardFragment.getDriveJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.DRIVE_JOYSTICK_NODE));
-//        nodeMainExecutor.execute(mBoardFragment.getHeadJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.HEAD_JOYSTICK_NODE));
+        nodeMainExecutor.execute(mBoardFragment.getHeadJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.HEAD_JOYSTICK_NODE));
         nodeMainExecutor.execute(mBoardOrientationNode, nodeConfiguration.setNodeName(AppConst.RoboBoard.ORIENTATION_NODE));
     }
 

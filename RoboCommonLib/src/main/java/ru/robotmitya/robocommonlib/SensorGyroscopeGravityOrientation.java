@@ -142,14 +142,6 @@ public class SensorGyroscopeGravityOrientation extends SensorGyroscopeOrientatio
             mTmpVector.crs(target);
             final float angle = - MathUtils.radiansToDegrees * MathUtils.atan2(mTmpVector.len(), source.dot(target));
             mTmpQuaternion.set(mTmpVector, angle);
-
-//            //todo #45 убрать
-//            if (Math.abs(angle) > 10) {
-//                Log.d(this, "+++ angle=" + angle +
-//                        "\t source=" + Log.fmt(source) +
-//                        "\t target=" + Log.fmt(target) +
-//                        "\t curr=" + Log.fmt(mGravityDeviceVectorRaw));
-//            }
         }
         // Дополняем трансформацию этим поворотом.
         transformation.mulLeft(mTmpQuaternion);

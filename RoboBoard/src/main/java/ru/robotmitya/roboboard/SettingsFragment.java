@@ -118,11 +118,23 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         } else if (preference == mListPreferenceRemoteControlMode) {
             mRemoteControlMode = Integer.valueOf(value);
             mListPreferenceRemoteControlMode.setSummary(mRemoteControlModeEntries.get(mRemoteControlMode));
+            if (mRemoteControlMode == REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
+                sendDisableOrientationViewBroadcast();
+            }
             sendRemoteControlModeWasChangedBroadcast();
             return true;
         }
 
         return false;
+    }
+
+    private void sendDisableOrientationViewBroadcast() {
+        Intent intent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, false);
+        if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
+            LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
+            Log.d(this, AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE + " was sent to disable " + OrientationView.class.getName());
+        }
     }
 
     private void sendRemoteControlModeWasChangedBroadcast() {

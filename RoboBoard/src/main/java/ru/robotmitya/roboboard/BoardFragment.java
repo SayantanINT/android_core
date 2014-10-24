@@ -44,7 +44,7 @@ public class BoardFragment extends Fragment {
     private CheckableImageView mButtonSwitchCamera;
 
     private BoardJoystickView mDriveJoystick;
-    private BoardJoystickView mHeadJoystick;
+    private RoboJoystickView mHeadJoystick;
     private OrientationView mHeadOrientation;
 
     private ImageView mImageViewRobotBattery;
@@ -332,7 +332,7 @@ public class BoardFragment extends Fragment {
         // Joysticks:
         mDriveJoystick = (BoardJoystickView) result.findViewById(R.id.drive_joystick);
         mDriveJoystick.setTopicName(AppConst.RoboHead.DRIVE_JOYSTICK_TOPIC);
-        mHeadJoystick = (BoardJoystickView) result.findViewById(R.id.head_joystick);
+        mHeadJoystick = (RoboJoystickView) result.findViewById(R.id.head_joystick);
         mHeadJoystick.setTopicName(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
         mHeadOrientation = (OrientationView) result.findViewById(R.id.head_orientation);
         setHeadJoystickVisibility();
@@ -422,7 +422,7 @@ public class BoardFragment extends Fragment {
         return mDriveJoystick;
     }
 
-    public BoardJoystickView getHeadJoystick() {
+    public RoboJoystickView getHeadJoystick() {
         return mHeadJoystick;
     }
 

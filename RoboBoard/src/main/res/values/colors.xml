@@ -6,4 +6,5 @@
     <color name="board_button_checked_stroke_color">#ff33b5e5</color>
     <color name="orientation_pointer_enabled_color">#ff436f87</color>
     <color name="orientation_pointer_disabled_color">#ffaaaaaa</color>
+    <color name="joystick_color">#ff436f87</color>
 </resources>

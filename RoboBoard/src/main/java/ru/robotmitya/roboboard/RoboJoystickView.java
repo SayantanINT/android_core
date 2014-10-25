@@ -37,6 +37,7 @@ public class RoboJoystickView extends View implements NodeMain {
     private GestureDetector mGestureDetector;
 
     private float mPointerRadius;
+    private float mPointerCenterRadius;
     private float mRoundRadius;
     private float mScale;
 
@@ -53,6 +54,8 @@ public class RoboJoystickView extends View implements NodeMain {
     private Paint mPaintBackground;
     private Paint mPaintEnabledPointer;
     private Paint mPaintDisabledPointer;
+    private Paint mPaintEnabledPointerCenter;
+    private Paint mPaintDisabledPointerCenter;
 
     private boolean mIsInTouch;
 
@@ -101,6 +104,13 @@ public class RoboJoystickView extends View implements NodeMain {
 
         mPaintDisabledPointer = new Paint(mPaintEnabledPointer);
         mPaintDisabledPointer.setColor(getContext().getResources().getColor(R.color.joystick_pointer_disabled_color));
+
+        mPaintEnabledPointerCenter = new Paint();
+        mPaintEnabledPointerCenter.setStyle(Paint.Style.FILL);
+        mPaintEnabledPointerCenter.setColor(getContext().getResources().getColor(R.color.joystick_pointer_enabled_color));
+
+        mPaintDisabledPointerCenter = new Paint(mPaintEnabledPointerCenter);
+        mPaintDisabledPointerCenter.setColor(getContext().getResources().getColor(R.color.joystick_pointer_disabled_color));
     }
 
     private void initGestureDetector() {
@@ -201,6 +211,7 @@ public class RoboJoystickView extends View implements NodeMain {
         final float height = bottom - top + 1;
         final float radius = width / 2;
         mPointerRadius = width * POINTER_SCALE;
+        mPointerCenterRadius = mPointerRadius / 2;
         final float strokeWidth = width * POINTER_BORDER_SCALE;
         mScale = radius - mPointerRadius - strokeWidth;
 
@@ -229,8 +240,16 @@ public class RoboJoystickView extends View implements NodeMain {
             mPreviousPointerCenter.lerp(mPointerCenter, 0.4f);
         }
 
-        mPointerRect.set(mPreviousPointerCenter.x - mPointerRadius, mPreviousPointerCenter.y - mPointerRadius, mPreviousPointerCenter.x + mPointerRadius, mPreviousPointerCenter.y + mPointerRadius);
         Paint paint = isZero ? mPaintDisabledPointer : mPaintEnabledPointer;
+        mPointerRect.set(
+                mPreviousPointerCenter.x - mPointerRadius, mPreviousPointerCenter.y - mPointerRadius,
+                mPreviousPointerCenter.x + mPointerRadius, mPreviousPointerCenter.y + mPointerRadius);
+        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
+
+        paint = isZero ? mPaintDisabledPointerCenter : mPaintEnabledPointerCenter;
+        mPointerRect.set(
+                mPreviousPointerCenter.x - mPointerCenterRadius, mPreviousPointerCenter.y - mPointerCenterRadius,
+                mPreviousPointerCenter.x + mPointerCenterRadius, mPreviousPointerCenter.y + mPointerCenterRadius);
         canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
     }
 

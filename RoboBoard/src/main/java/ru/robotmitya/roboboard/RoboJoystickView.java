@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,9 +29,10 @@ public class RoboJoystickView extends View implements NodeMain {
     private static final String DEFAULT_NODE_NAME = "virtual_joystick_view";
     private static final String DEFAULT_TOPIC_NAME = "joystick";
 
+    private static final float ZERO_DELTA = 0.05f;
+
     private static final float POINTER_SCALE = 1f / 10f;
     private static final float POINTER_BORDER_SCALE = 1f / 30f;
-    private static final float POINTER_ROUND_SCALE = 1f / 20f;
 
     private GestureDetector mGestureDetector;
 
@@ -49,7 +51,8 @@ public class RoboJoystickView extends View implements NodeMain {
     private Vector2 mPreviousPointerCenter;
 
     private Paint mPaintBackground;
-    private Paint mPaintPointer;
+    private Paint mPaintEnabledPointer;
+    private Paint mPaintDisabledPointer;
 
     private boolean mIsInTouch;
 
@@ -85,12 +88,19 @@ public class RoboJoystickView extends View implements NodeMain {
     }
 
     private void initPaint() {
+        float size = getContext().getResources().getDimension(R.dimen.rounded_corner);
+        mRoundRadius = convertDpToPixel(getContext(), size);
+
         mPaintBackground = new Paint();
         mPaintBackground.setStyle(Paint.Style.FILL);
         mPaintBackground.setColor(getContext().getResources().getColor(R.color.board_button_background_color));
 
-        mPaintPointer = new Paint();
-        mPaintPointer.setStyle(Paint.Style.STROKE);
+        mPaintEnabledPointer = new Paint();
+        mPaintEnabledPointer.setStyle(Paint.Style.STROKE);
+        mPaintEnabledPointer.setColor(getContext().getResources().getColor(R.color.joystick_pointer_enabled_color));
+
+        mPaintDisabledPointer = new Paint(mPaintEnabledPointer);
+        mPaintDisabledPointer.setColor(getContext().getResources().getColor(R.color.joystick_pointer_disabled_color));
     }
 
     private void initGestureDetector() {
@@ -104,13 +114,18 @@ public class RoboJoystickView extends View implements NodeMain {
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 mPointerCenter.set(e.getX(), e.getY());
                 screenToJoystick(mPointerCenter);
+
+                // Near zero is zero
+                if (isZero(mPointerCenter)) {
+                    mPointerCenter.setZero();
+                }
+
                 setPosition(mPointerCenter.x, mPointerCenter.y);
                 return true;
             }
 
             @Override
             public void onLongPress(MotionEvent e) {
-                setPosition(0, 0);
             }
 
             @Override
@@ -119,6 +134,10 @@ public class RoboJoystickView extends View implements NodeMain {
                 return true;
             }
         });
+    }
+
+    private boolean isZero(final Vector2 p) {
+        return (Math.abs(p.x) < ZERO_DELTA) && (Math.abs(p.y) < ZERO_DELTA);
     }
 
     private void setPosition(final float x, final float y) {
@@ -171,6 +190,10 @@ public class RoboJoystickView extends View implements NodeMain {
         return mGestureDetector.onTouchEvent(event);
     }
 
+    private static float convertDpToPixel(Context context, float size) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, context.getResources().getDisplayMetrics());
+    }
+
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
@@ -179,7 +202,6 @@ public class RoboJoystickView extends View implements NodeMain {
         final float radius = width / 2;
         mPointerRadius = width * POINTER_SCALE;
         final float strokeWidth = width * POINTER_BORDER_SCALE;
-        mRoundRadius = width * POINTER_ROUND_SCALE;
         mScale = radius - mPointerRadius - strokeWidth;
 
         mViewCenter.set(width / 2f, height / 2f);
@@ -187,9 +209,8 @@ public class RoboJoystickView extends View implements NodeMain {
                 mViewCenter.x - radius, mViewCenter.y - radius,
                 mViewCenter.x + radius, mViewCenter.y + radius);
 
-        mPaintPointer.setStrokeWidth(strokeWidth);
-        mPaintPointer.setColor(getContext().getResources().getColor(R.color.joystick_color));
-
+        mPaintEnabledPointer.setStrokeWidth(strokeWidth);
+        mPaintDisabledPointer.setStrokeWidth(strokeWidth);
     }
 
     @Override
@@ -199,6 +220,7 @@ public class RoboJoystickView extends View implements NodeMain {
         canvas.drawRoundRect(mBackgroundRect, mRoundRadius, mRoundRadius, mPaintBackground);
 
         mPointerCenter.set(mX, mY);
+        final boolean isZero = isZero(mPointerCenter);
         joystickToScreen(mPointerCenter);
 
         if (mPreviousPointerCenter == null) {
@@ -208,7 +230,8 @@ public class RoboJoystickView extends View implements NodeMain {
         }
 
         mPointerRect.set(mPreviousPointerCenter.x - mPointerRadius, mPreviousPointerCenter.y - mPointerRadius, mPreviousPointerCenter.x + mPointerRadius, mPreviousPointerCenter.y + mPointerRadius);
-        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, mPaintPointer);
+        Paint paint = isZero ? mPaintDisabledPointer : mPaintEnabledPointer;
+        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
     }
 
     public void setTopicName(String topicName) {

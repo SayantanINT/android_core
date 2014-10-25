@@ -8,5 +8,6 @@
     <dimen name="battery_image_left_marging">12dp</dimen>
     <dimen name="battery_image_inside_marging">6dp</dimen>
     <dimen name="joystick_size">180dp</dimen>
+    <dimen name="rounded_corner">4dp</dimen>
     <dimen name="joystick_margin">10dp</dimen>
 </resources>

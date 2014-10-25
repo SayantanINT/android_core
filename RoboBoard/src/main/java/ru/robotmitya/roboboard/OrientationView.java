@@ -4,13 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.jetbrains.annotations.NotNull;
 import ru.robotmitya.robocommonlib.AppConst;
@@ -21,13 +22,15 @@ public class OrientationView extends View {
 
     private GestureDetector mGestureDetector;
 
-    private float mRadius;
     private float mPointerRadius;
-    private float mStrokeWidth;
+    private float mRoundRadius;
     private float mScale;
 
-    private float mX = 0f;
-    private float mY = 0f;
+    private float mX = 1f;
+    private float mY = 1f;
+
+    private RectF mBackgroundRect = new RectF();
+    private RectF mPointerRect = new RectF();
 
     private Vector2 mViewCenter = new Vector2();
     private Vector2 mPointerCenter = new Vector2();
@@ -76,25 +79,27 @@ public class OrientationView extends View {
         super.onLayout(changed, left, top, right, bottom);
         final float width = right - left + 1;
         final float height = bottom - top + 1;
-        mRadius = width / 2;
+        final float radius = width / 2;
+        final float strokeWidth = width * POINTER_BORDER_SCALE;
+        mScale = radius - mPointerRadius - strokeWidth;
+        mPaintPointer.setStrokeWidth(strokeWidth);
         mPointerRadius = width * POINTER_SCALE;
-        mStrokeWidth = width * POINTER_BORDER_SCALE;
-        mScale = mRadius - mPointerRadius - mStrokeWidth;
         mViewCenter.set(width / 2f, height / 2f);
+        mBackgroundRect.set(
+                mViewCenter.x - radius, mViewCenter.y - radius,
+                mViewCenter.x + radius, mViewCenter.y + radius);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.drawCircle(mViewCenter.x, mViewCenter.y, mRadius, mPaintBackground);
+        canvas.drawRoundRect(mBackgroundRect, mRoundRadius, mRoundRadius, mPaintBackground);
 
-        mPaintPointer.setStrokeWidth(mStrokeWidth);
         final int colorId = isEnabled() ? R.color.orientation_pointer_enabled_color : R.color.orientation_pointer_disabled_color;
         mPaintPointer.setColor(getContext().getResources().getColor(colorId));
 
         mPointerCenter.set(mX, mY);
-        transformSquareToCircle(mPointerCenter);
         mPointerCenter.scl(mScale);
         mPointerCenter.add(mViewCenter);
 
@@ -104,20 +109,10 @@ public class OrientationView extends View {
             mPreviousPointerCenter.lerp(mPointerCenter, 0.4f);
         }
 
-        canvas.drawCircle(mPreviousPointerCenter.x, mPreviousPointerCenter.y, mPointerRadius, mPaintPointer);
-    }
-
-    private void transformSquareToCircle(Vector2 p) {
-        final float x = p.x;
-        final float y = p.y;
-        final float r = (float) Math.sqrt(x * x + y * y);
-        if (r > MathUtils.FLOAT_ROUNDING_ERROR) {
-            p.x = Math.signum(x) * x * x / r;
-            p.y = Math.signum(y) * y * y / r;
-        } else {
-            p.x = 0f;
-            p.y = 0f;
-        }
+        mPointerRect.set(
+                mPreviousPointerCenter.x - mPointerRadius, mPreviousPointerCenter.y - mPointerRadius,
+                mPreviousPointerCenter.x + mPointerRadius, mPreviousPointerCenter.y + mPointerRadius);
+        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, mPaintPointer);
     }
 
     private void init() {
@@ -127,7 +122,14 @@ public class OrientationView extends View {
         initGestureDetector();
     }
 
+    private static float convertDpToPixel(Context context, float size) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, context.getResources().getDisplayMetrics());
+    }
+
     private void initPaint() {
+        float size = getContext().getResources().getDimension(R.dimen.rounded_corner);
+        mRoundRadius = convertDpToPixel(getContext(), size);
+
         mPaintBackground = new Paint();
         mPaintBackground.setStyle(Paint.Style.FILL);
         mPaintBackground.setColor(getContext().getResources().getColor(R.color.board_button_background_color));

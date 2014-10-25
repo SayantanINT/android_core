@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import com.badlogic.gdx.Gdx;
 import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
 import org.ros.node.NodeConfiguration;
@@ -86,7 +85,7 @@ public class MainActivity extends RosActivity {
     }
 
     private static int getRotation (Context context) {
-        int orientation = 0;
+        int orientation;
 
         if (context instanceof Activity) {
             orientation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();

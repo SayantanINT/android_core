@@ -1,9 +1,13 @@
 package ru.robotmitya.roboboard;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -17,9 +21,12 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.Node;
 import org.ros.node.NodeMain;
 import org.ros.node.topic.Publisher;
+import ru.robotmitya.robocommonlib.AppConst;
+import ru.robotmitya.robocommonlib.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  *
@@ -49,7 +56,7 @@ public class RoboJoystickView extends View implements NodeMain {
 
     private Vector2 mViewCenter = new Vector2();
     private Vector2 mPointerCenter = new Vector2();
-    private Vector2 mPreviousPointerCenter;
+    private Vector2 mScreenPointerCenter;
 
     private Paint mPaintBackground;
     private Paint mPaintEnabledPointer;
@@ -58,12 +65,16 @@ public class RoboJoystickView extends View implements NodeMain {
     private Paint mPaintDisabledPointerCenter;
 
     private boolean mIsInTouch;
+    private boolean mMoveToZeroWhenReleased;
 
     private String mTopicName;
     private boolean mIsConnected = false;
     private Timer mPublisherTimer;
     private Publisher<Twist> mPublisher;
     private geometry_msgs.Twist mCurrentMessage;
+    private final ReentrantReadWriteLock mReadWriteLock = new ReentrantReadWriteLock();
+
+    private BroadcastReceiver mBroadcastReceiverActivate;
 
 
     @SuppressWarnings("UnusedDeclaration")
@@ -122,6 +133,10 @@ public class RoboJoystickView extends View implements NodeMain {
 
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
+                if (mMoveToZeroWhenReleased) {
+                    return true;
+                }
+
                 mPointerCenter.set(e.getX(), e.getY());
                 screenToJoystick(mPointerCenter);
 
@@ -153,7 +168,7 @@ public class RoboJoystickView extends View implements NodeMain {
     private void setPosition(final float x, final float y) {
         mX = x;
         mY = y;
-        mPreviousPointerCenter = null;
+        mScreenPointerCenter = null;
         invalidate();
     }
 
@@ -185,6 +200,11 @@ public class RoboJoystickView extends View implements NodeMain {
                 break;
             case MotionEvent.ACTION_UP:
                 mIsInTouch = mIsInTouch && (event.getPointerCount() == 0);
+
+                if (mMoveToZeroWhenReleased && !mIsInTouch) {
+                    setPosition(0, 0);
+                }
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mIsInTouch) {
@@ -234,27 +254,61 @@ public class RoboJoystickView extends View implements NodeMain {
         final boolean isZero = isZero(mPointerCenter);
         joystickToScreen(mPointerCenter);
 
-        if (mPreviousPointerCenter == null) {
-            mPreviousPointerCenter = new Vector2(mPointerCenter);
+        if (mScreenPointerCenter == null) {
+            mScreenPointerCenter = new Vector2(mPointerCenter);
         } else {
-            mPreviousPointerCenter.lerp(mPointerCenter, 0.4f);
+            mScreenPointerCenter.lerp(mPointerCenter, 0.4f);
         }
+
+        mPointerCenter.set(mScreenPointerCenter);
+        screenToJoystick(mPointerCenter);
+        setCurrentMessage(mPointerCenter.x, mPointerCenter.y);
 
         Paint paint = isZero ? mPaintDisabledPointer : mPaintEnabledPointer;
         mPointerRect.set(
-                mPreviousPointerCenter.x - mPointerRadius, mPreviousPointerCenter.y - mPointerRadius,
-                mPreviousPointerCenter.x + mPointerRadius, mPreviousPointerCenter.y + mPointerRadius);
+                mScreenPointerCenter.x - mPointerRadius, mScreenPointerCenter.y - mPointerRadius,
+                mScreenPointerCenter.x + mPointerRadius, mScreenPointerCenter.y + mPointerRadius);
         canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
 
         paint = isZero ? mPaintDisabledPointerCenter : mPaintEnabledPointerCenter;
         mPointerRect.set(
-                mPreviousPointerCenter.x - mPointerCenterRadius, mPreviousPointerCenter.y - mPointerCenterRadius,
-                mPreviousPointerCenter.x + mPointerCenterRadius, mPreviousPointerCenter.y + mPointerCenterRadius);
+                mScreenPointerCenter.x - mPointerCenterRadius, mScreenPointerCenter.y - mPointerCenterRadius,
+                mScreenPointerCenter.x + mPointerCenterRadius, mScreenPointerCenter.y + mPointerCenterRadius);
         canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
     }
 
     public void setTopicName(String topicName) {
         mTopicName = topicName;
+    }
+
+    public void setMoveToZeroWhenReleased(boolean value) {
+        mMoveToZeroWhenReleased = value;
+    }
+
+    private geometry_msgs.Twist getCurrentMessage() {
+        mReadWriteLock.readLock().lock();
+        try {
+            return mCurrentMessage;
+        } finally {
+            mReadWriteLock.readLock().unlock();
+        }
+    }
+
+    private void setCurrentMessage(final float x, final float y) {
+        mReadWriteLock.writeLock().lock();
+        try {
+            if (mCurrentMessage == null) {
+                return;
+            }
+            mCurrentMessage.getAngular().setX(0);
+            mCurrentMessage.getAngular().setY(0);
+            mCurrentMessage.getAngular().setZ(-x);
+            mCurrentMessage.getLinear().setX(y);
+            mCurrentMessage.getLinear().setY(0);
+            mCurrentMessage.getLinear().setZ(0);
+        } finally {
+            mReadWriteLock.writeLock().unlock();
+        }
     }
 
 
@@ -274,9 +328,26 @@ public class RoboJoystickView extends View implements NodeMain {
         mPublisherTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                mPublisher.publish(mCurrentMessage);
+                if (RoboJoystickView.this.isEnabled()) {
+                    mPublisher.publish(getCurrentMessage());
+                }
             }
         }, 0, 80);
+
+        mBroadcastReceiverActivate = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String topicName = intent.getStringExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_TOPIC);
+                if (topicName == null) topicName = "";
+                if (topicName.contentEquals(mTopicName)) {
+                    Log.d(RoboJoystickView.this, "broadcast received: activate");
+                    setEnabled(intent.getBooleanExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_ENABLED, false));
+                }
+            }
+        };
+
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(
+                mBroadcastReceiverActivate, new IntentFilter(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE));
 
         mIsConnected = true;
     }
@@ -289,6 +360,7 @@ public class RoboJoystickView extends View implements NodeMain {
     public void onShutdownComplete(Node node) {
         mPublisherTimer.cancel();
         mPublisherTimer.purge();
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiverActivate);
     }
 
     @Override
@@ -296,4 +368,11 @@ public class RoboJoystickView extends View implements NodeMain {
     }
     //**************            end          ***************
     //************** NodeMain implementation ***************
+
+
+//    @Override
+//    public void setEnabled(boolean enabled) {
+//        super.setEnabled(enabled);
+//        Log.d(this, "======== " + mTopicName + " " + enabled);
+//    }
 }

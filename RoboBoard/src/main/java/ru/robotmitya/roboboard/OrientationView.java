@@ -26,8 +26,8 @@ public class OrientationView extends View {
     private float mRoundRadius;
     private float mScale;
 
-    private float mX = 1f;
-    private float mY = 1f;
+    private float mX = 0f;
+    private float mY = 0f;
 
     private RectF mBackgroundRect = new RectF();
     private RectF mPointerRect = new RectF();

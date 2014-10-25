@@ -43,7 +43,7 @@ public class BoardFragment extends Fragment {
 
     private CheckableImageView mButtonSwitchCamera;
 
-    private BoardJoystickView mDriveJoystick;
+    private RoboJoystickView mDriveJoystick;
     private RoboJoystickView mHeadJoystick;
     private OrientationView mHeadOrientation;
 
@@ -219,12 +219,16 @@ public class BoardFragment extends Fragment {
     private void setHeadJoystickVisibility() {
         if (SettingsFragment.getRemoteControlMode() == SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
             mHeadJoystick.setVisibility(View.VISIBLE);
+            mHeadJoystick.setEnabled(true);
             mHeadOrientation.setVisibility(View.GONE);
             mHeadOrientation.setEnabled(false);
         } else {
             mHeadJoystick.setVisibility(View.GONE);
+            mHeadJoystick.setEnabled(false);
             mHeadOrientation.setVisibility(View.VISIBLE);
+            mHeadOrientation.setEnabled(false); // OrientationView should be disabled by default.
         }
+        sendActivateBroadcastToOrientationView(false);
     }
 
     @Override
@@ -330,11 +334,16 @@ public class BoardFragment extends Fragment {
         mButtonSwitchCamera.setOnClickListener(switchCamButtonListener);
 
         // Joysticks:
-        mDriveJoystick = (BoardJoystickView) result.findViewById(R.id.drive_joystick);
+        mDriveJoystick = (RoboJoystickView) result.findViewById(R.id.drive_joystick);
         mDriveJoystick.setTopicName(AppConst.RoboHead.DRIVE_JOYSTICK_TOPIC);
+        mDriveJoystick.setMoveToZeroWhenReleased(true);
+
         mHeadJoystick = (RoboJoystickView) result.findViewById(R.id.head_joystick);
         mHeadJoystick.setTopicName(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
+        mHeadJoystick.setMoveToZeroWhenReleased(false);
+
         mHeadOrientation = (OrientationView) result.findViewById(R.id.head_orientation);
+
         setHeadJoystickVisibility();
 
 
@@ -418,7 +427,7 @@ public class BoardFragment extends Fragment {
         super.onPause();
     }
 
-    public BoardJoystickView getDriveJoystick() {
+    public RoboJoystickView getDriveJoystick() {
         return mDriveJoystick;
     }
 
@@ -450,4 +459,13 @@ public class BoardFragment extends Fragment {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
+    private void sendActivateBroadcastToOrientationView(final boolean value) {
+        Intent intent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, value);
+        if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
+            LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
+            final String valueText = value ? " enable " : " disable ";
+            Log.d(this, AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE + " was sent to " + valueText + OrientationView.class.getName());
+        }
+    }
 }

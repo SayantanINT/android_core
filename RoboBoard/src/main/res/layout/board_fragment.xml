@@ -443,7 +443,7 @@
 
     <!-- Left (drive) joystick -->
 
-    <ru.robotmitya.roboboard.BoardJoystickView
+    <ru.robotmitya.roboboard.RoboJoystickView
         android:id="@+id/drive_joystick"
         android:layout_width="@dimen/joystick_size"
         android:layout_height="@dimen/joystick_size"

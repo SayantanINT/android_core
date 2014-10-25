@@ -43,6 +43,10 @@ public final class AppConst {
             public static final String ORIENTATION_POINTER_POSITION = "ru.robotmitya.roboboard.BOARD-ORIENTATION-POINTER-POSITION";
             public static final String ORIENTATION_POINTER_POSITION_EXTRA_AZIMUTH = "x";
             public static final String ORIENTATION_POINTER_POSITION_EXTRA_PITCH = "y";
+
+            public static final String JOYSTICK_ACTIVATE = "ru.robotmitya.roboboard.BOARD-JOYSTICK-ACTIVATE";
+            public static final String JOYSTICK_ACTIVATE_EXTRA_ENABLED = "enabled";
+            public static final String JOYSTICK_ACTIVATE_EXTRA_TOPIC = "topic";
         }
     }
 

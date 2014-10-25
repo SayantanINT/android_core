@@ -119,7 +119,11 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             mRemoteControlMode = Integer.valueOf(value);
             mListPreferenceRemoteControlMode.setSummary(mRemoteControlModeEntries.get(mRemoteControlMode));
             if (mRemoteControlMode == REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
-                sendDisableOrientationViewBroadcast();
+                sendActivateOrientationViewBroadcast(false);
+                sendActivateHeadJoystickBroadcast(true);
+            } else if (mRemoteControlMode == REMOTE_CONTROL_MODE.ORIENTATION) {
+                sendActivateHeadJoystickBroadcast(false);
+                // OrientationView is always disabled in onStart method.
             }
             sendRemoteControlModeWasChangedBroadcast();
             return true;
@@ -128,12 +132,24 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         return false;
     }
 
-    private void sendDisableOrientationViewBroadcast() {
+    private void sendActivateOrientationViewBroadcast(final boolean value) {
         Intent intent = new Intent(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE);
-        intent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, false);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE_EXTRA_ENABLED, value);
         if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
             LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
-            Log.d(this, AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE + " was sent to disable " + OrientationView.class.getName());
+            final String valueText = value ? " enable " : " disable ";
+            Log.d(this, AppConst.RoboBoard.Broadcast.ORIENTATION_ACTIVATE + " was sent to " + valueText + OrientationView.class.getName());
+        }
+    }
+
+    private void sendActivateHeadJoystickBroadcast(final boolean value) {
+        Intent intent = new Intent(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_TOPIC, AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_ENABLED, value);
+        if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
+            LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
+            final String valueText = value ? " enable " : " disable ";
+            Log.d(this, AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE + " was sent to" + valueText + "head joystick");
         }
     }
 

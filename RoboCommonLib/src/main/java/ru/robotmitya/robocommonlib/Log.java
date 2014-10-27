@@ -10,11 +10,16 @@ import org.ros.node.NodeMain;
  * @author dmitrydzz
  *
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class Log {
     /**
      * Flag to enable/disable logging.
      */
-    public static final boolean ENABLE_LOG = true;
+    private static final boolean ENABLE_LOG;
+
+    static {
+        ENABLE_LOG = BuildConfig.DEBUG;
+    }
 
     /**
      * Tag to filter.

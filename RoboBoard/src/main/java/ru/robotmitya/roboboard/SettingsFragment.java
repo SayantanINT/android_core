@@ -14,8 +14,13 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import org.jetbrains.annotations.NotNull;
 import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
+import ru.robotmitya.robocommonlib.SensorOrientation;
 
 /**
  * Created by dmitrydzz on 1/28/14.
@@ -73,6 +78,16 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         mListPreferenceRemoteControlMode.setValue(String.valueOf(mRemoteControlMode));
         onPreferenceChange(mListPreferenceRemoteControlMode, remoteControlModeValues.get(mRemoteControlMode));
         mListPreferenceRemoteControlMode.setOnPreferenceChangeListener(this);
+    }
+
+    @Override
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        final Context context = getActivity();
+        final boolean hasOrientationSensors =
+                SensorOrientation.hasGyroscopeSensor(context) && SensorOrientation.hasGravitySensor(context);
+        mListPreferenceRemoteControlMode.setEnabled(hasOrientationSensors); //todo #8
+
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     /**

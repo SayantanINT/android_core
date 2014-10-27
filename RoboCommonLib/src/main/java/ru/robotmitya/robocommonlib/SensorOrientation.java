@@ -153,4 +153,10 @@ public abstract class SensorOrientation implements SensorEventListener {
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         return sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null;
     }
+
+    @SuppressWarnings("unused")
+    public static boolean hasGravitySensor(Context context) {
+        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        return sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null;
+    }
 }

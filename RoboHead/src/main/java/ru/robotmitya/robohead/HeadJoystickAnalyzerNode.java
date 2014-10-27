@@ -44,12 +44,15 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
                 Vector3 linear = message.getLinear();
                 Vector3 angular = message.getAngular();
                 float x = (float) -angular.getZ();
-                float y = (float) linear.getX();
+                float y = (float) -linear.getX();
                 if (RoboState.getIsReverse()) {
                     y = -y;
                 }
+                if (x < -1) x = -1;
+                else if (x > 1) x = 1;
+                if (y < -1) y = -1;
+                else if (y > 1) y = 1;
                 mPosition.set(x, y);
-                correctCoordinatesFromCycleToSquareArea(mPosition);
                 if (mSmoothedPosition == null) {
                     mSmoothedPosition = new Vector2(mPosition);
                 } else {
@@ -57,9 +60,6 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
                 }
 
                 Log.messageReceived(HeadJoystickAnalyzerNode.this, String.format("x=%.3f, y=%.3f", mSmoothedPosition.x, mSmoothedPosition.y));
-
-                // Reverse vertical:
-                mSmoothedPosition.y = -mSmoothedPosition.y;
 
                 short horizontalDegree = getHorizontalDegree(mSmoothedPosition);
                 short verticalDegree = getVerticalDegree(mSmoothedPosition);
@@ -81,59 +81,6 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
 
     @Override
     public void onError(Node node, Throwable throwable) {
-    }
-
-    private static void correctCoordinatesFromCycleToSquareArea(final Vector2 pos) {
-        if ((pos.x >= 0) && (pos.y >= 0)) {
-            correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-        } else if ((pos.x < 0) && (pos.y >= 0)) {
-            pos.x = -pos.x;
-            correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.x = -pos.x;
-        } else if ((pos.x < 0) && (pos.y < 0)) {
-            pos.x = -pos.x;
-            pos.y = -pos.y;
-            correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.x = -pos.x;
-            pos.y = -pos.y;
-        } else if ((pos.x >= 0) && (pos.y < 0)) {
-            pos.y = -pos.y;
-            correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(pos);
-            pos.y = -pos.y;
-        }
-
-        pos.x = pos.x < -1 ? -1 : pos.x;
-        pos.x = pos.x > 1 ? 1 : pos.x;
-        pos.y = pos.y < -1 ? -1 : pos.y;
-        pos.y = pos.y > 1 ? 1 : pos.y;
-    }
-
-    @SuppressWarnings("SuspiciousNameCombination")
-    private static void correctCoordinatesFromCycleToSquareAreaForFirstQuadrant(final Vector2 pos) {
-        // To avoid div 0:
-        if (pos.x == 0) {
-            return;
-        }
-
-        if ((pos.x >= 0) && (pos.y >= 0)) {
-            boolean firstSectorInOctet = pos.x >= pos.y;
-            if (!firstSectorInOctet) {
-                float temp = pos.x;
-                pos.x = pos.y;
-                pos.y = temp;
-            }
-
-            float resultX = (float) Math.sqrt((pos.x * pos.x) + (pos.y * pos.y));
-            float resultY = pos.y * resultX / pos.x;
-            pos.x = resultX;
-            pos.y = resultY;
-
-            if (!firstSectorInOctet) {
-                float temp = pos.x;
-                pos.x = pos.y;
-                pos.y = temp;
-            }
-        }
     }
 
     private void publishCommand(final String command) {

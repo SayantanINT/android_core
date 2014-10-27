@@ -59,6 +59,8 @@ public class RoboJoystickView extends View implements NodeMain {
     private Vector2 mScreenPointerCenter;
 
     private Paint mPaintBackground;
+    private Paint mPaintEnabledHintLines;
+    private Paint mPaintDisabledHintLines;
     private Paint mPaintEnabledPointer;
     private Paint mPaintDisabledPointer;
     private Paint mPaintEnabledPointerCenter;
@@ -109,19 +111,30 @@ public class RoboJoystickView extends View implements NodeMain {
         mPaintBackground.setStyle(Paint.Style.FILL);
         mPaintBackground.setColor(getContext().getResources().getColor(R.color.board_button_background_color));
 
+        final int colorEnabled = getContext().getResources().getColor(R.color.joystick_pointer_enabled_color);
+        final int colorDisabled = getContext().getResources().getColor(R.color.joystick_pointer_disabled_color);
+
+        mPaintEnabledHintLines = new Paint();
+        mPaintEnabledHintLines.setStyle(Paint.Style.STROKE);
+        mPaintEnabledHintLines.setStrokeWidth(convertDpToPixel(getContext(), 1));
+        mPaintEnabledHintLines.setColor(colorEnabled);
+
+        mPaintDisabledHintLines = new Paint(mPaintEnabledHintLines);
+        mPaintDisabledHintLines.setColor(colorDisabled);
+
         mPaintEnabledPointer = new Paint();
         mPaintEnabledPointer.setStyle(Paint.Style.STROKE);
-        mPaintEnabledPointer.setColor(getContext().getResources().getColor(R.color.joystick_pointer_enabled_color));
+        mPaintEnabledPointer.setColor(colorEnabled);
 
         mPaintDisabledPointer = new Paint(mPaintEnabledPointer);
-        mPaintDisabledPointer.setColor(getContext().getResources().getColor(R.color.joystick_pointer_disabled_color));
+        mPaintDisabledPointer.setColor(colorDisabled);
 
         mPaintEnabledPointerCenter = new Paint();
         mPaintEnabledPointerCenter.setStyle(Paint.Style.FILL);
-        mPaintEnabledPointerCenter.setColor(getContext().getResources().getColor(R.color.joystick_pointer_enabled_color));
+        mPaintEnabledPointerCenter.setColor(colorEnabled);
 
         mPaintDisabledPointerCenter = new Paint(mPaintEnabledPointerCenter);
-        mPaintDisabledPointerCenter.setColor(getContext().getResources().getColor(R.color.joystick_pointer_disabled_color));
+        mPaintDisabledPointerCenter.setColor(colorDisabled);
     }
 
     private void initGestureDetector() {
@@ -197,14 +210,14 @@ public class RoboJoystickView extends View implements NodeMain {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 mIsInTouch = event.getPointerCount() == 1;
+                invalidate();
                 break;
             case MotionEvent.ACTION_UP:
                 mIsInTouch = mIsInTouch && (event.getPointerCount() == 0);
-
                 if (mMoveToZeroWhenReleased && !mIsInTouch) {
                     setPosition(0, 0);
                 }
-
+                invalidate();
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mIsInTouch) {
@@ -257,24 +270,30 @@ public class RoboJoystickView extends View implements NodeMain {
         if (mScreenPointerCenter == null) {
             mScreenPointerCenter = new Vector2(mPointerCenter);
         } else {
-            mScreenPointerCenter.lerp(mPointerCenter, 0.4f);
+            mScreenPointerCenter.lerp(mPointerCenter, 0.9f); //0.4f);
         }
 
         mPointerCenter.set(mScreenPointerCenter);
         screenToJoystick(mPointerCenter);
         setCurrentMessage(mPointerCenter.x, mPointerCenter.y);
 
-        Paint paint = isZero ? mPaintDisabledPointer : mPaintEnabledPointer;
+        if (mIsInTouch) {
+            Paint paintHintLines = isZero ? mPaintDisabledHintLines : mPaintEnabledHintLines;
+            canvas.drawLine(0, mScreenPointerCenter.y, getRight(), mScreenPointerCenter.y, paintHintLines);
+            canvas.drawLine(mScreenPointerCenter.x, 0, mScreenPointerCenter.x, getBottom(), paintHintLines);
+        }
+
+        Paint paintPointerBorder = isZero ? mPaintDisabledPointer : mPaintEnabledPointer;
         mPointerRect.set(
                 mScreenPointerCenter.x - mPointerRadius, mScreenPointerCenter.y - mPointerRadius,
                 mScreenPointerCenter.x + mPointerRadius, mScreenPointerCenter.y + mPointerRadius);
-        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
+        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paintPointerBorder);
 
-        paint = isZero ? mPaintDisabledPointerCenter : mPaintEnabledPointerCenter;
+        Paint paintPointerCenter = isZero ? mPaintDisabledPointerCenter : mPaintEnabledPointerCenter;
         mPointerRect.set(
                 mScreenPointerCenter.x - mPointerCenterRadius, mScreenPointerCenter.y - mPointerCenterRadius,
                 mScreenPointerCenter.x + mPointerCenterRadius, mScreenPointerCenter.y + mPointerCenterRadius);
-        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paint);
+        canvas.drawRoundRect(mPointerRect, mRoundRadius, mRoundRadius, paintPointerCenter);
     }
 
     public void setTopicName(String topicName) {

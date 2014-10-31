@@ -7,16 +7,25 @@
 
 
     <PreferenceCategory
-        android:key="@string/preference_ros_core_key"
-        android:title="@string/preference_ros_core">
+            android:key="@string/preference_ros_core_key"
+            android:title="@string/preference_ros_core">
+
+        <CheckBoxPreference
+                android:key="@string/option_is_public_master_key"
+                android:disableDependentsState="true"
+                android:title="@string/option_is_public_master_title"
+                android:defaultValue="@string/option_is_public_master_default_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
         <EditTextPreference
-            android:key="@string/option_master_uri_key"
-            android:title="@string/option_master_uri_title"
-            android:summary="@string/option_master_uri_summary"
-            android:defaultValue="@string/option_master_uri_default_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+                android:key="@string/option_master_uri_key"
+                android:dependency="@string/option_is_public_master_key"
+                android:title="@string/option_master_uri_title"
+                android:summary="@string/option_master_uri_summary"
+                android:defaultValue="@string/option_master_uri_default_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
     </PreferenceCategory>
 

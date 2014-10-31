@@ -12,8 +12,11 @@
     <string name="dialog_settings_title">Application settings</string>
 
     <string name="preference_ros_core">ROS core</string>
-    <string name="option_master_uri_title">Master URI</string>
-    <string name="option_master_uri_summary">URI of ROS core (http://&lt;ip address&gt;:&lt;port&gt;)</string>
+    <string name="option_is_public_master_title">This app</string>
+    <string name="option_is_public_master_summary">Starts public master in this app</string>
+    <string name="option_is_not_public_master_summary">Set IP address where public master is running</string>
+    <string name="option_master_uri_title">Master URI IP address</string>
+    <string name="option_master_uri_summary">IP address of ROS core</string>
 
     <string name="preference_camera">Video</string>
     <string name="option_camera_index_title">Camera</string>

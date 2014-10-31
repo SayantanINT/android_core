@@ -35,6 +35,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private static boolean mIsPublicMaster;
     private static String mLocalMasterUri;
     private static String mRemoteMasterUriIp;
+
     private static int mRemoteControlMode;
 
     public static class REMOTE_CONTROL_MODE {
@@ -68,7 +69,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.layout.settings_fragment);
+        addPreferencesFromResource(R.xml.settings_fragment);
 
         String key;
 
@@ -80,7 +81,6 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         mCheckBoxPreferenceIsPublicMaster = (CheckBoxPreference) this.findPreference(key);
         onPreferenceChange(mCheckBoxPreferenceIsPublicMaster, mIsPublicMaster);
         mCheckBoxPreferenceIsPublicMaster.setOnPreferenceChangeListener(this);
-
 
         key = getString(R.string.option_master_uri_key);
         mEditTextPreferenceMasterUri = (EditTextPreference) this.findPreference(key);

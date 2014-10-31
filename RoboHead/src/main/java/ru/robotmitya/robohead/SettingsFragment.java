@@ -1,12 +1,11 @@
 package ru.robotmitya.robohead;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.hardware.Camera;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -18,12 +17,18 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import org.json.JSONException;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
+import ru.robotmitya.robocommonlib.SettingsHelper;
 
 /**
  * Created by dmitrydzz on 1/28/14.
@@ -33,7 +38,9 @@ import ru.robotmitya.robocommonlib.Log;
  */
 public final class SettingsFragment extends PreferenceFragment implements OnPreferenceChangeListener {
 
-    private static String mMasterUri;
+    private static boolean mIsPublicMaster;
+    private static String mLocalMasterUri;
+    private static String mRemoteMasterUriIp;
 
     private static CameraSizesSet mCameraSizesSet;
 
@@ -47,8 +54,9 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
      */
     private static String mRoboBodyMac; // "00:12:03:31:01:22"
 
+    private PreferenceCategory mPreferenceCategoryRosCore;
+    private CheckBoxPreference mCheckBoxPreferenceIsPublicMaster;
     private EditTextPreference mEditTextPreferenceMasterUri;
-
     private ListPreference mListPreferenceCamera;
     private ListPreference mListPreferenceFrontCameraMode;
     private ListPreference mListPreferenceBackCameraMode;
@@ -59,8 +67,16 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
      */
     private EditTextPreference mEditTextPreferenceRoboBodyMac;
 
-    public static String getMasterUri() {
-        return mMasterUri;
+    public static boolean getIsPublicMaster() {
+        return mIsPublicMaster;
+    }
+
+    public static String getMasterUri() throws MalformedURLException {
+        if (mIsPublicMaster) {
+            return mLocalMasterUri;
+        }
+
+        return SettingsHelper.getMasterUri(mRemoteMasterUriIp);
     }
 
     public static int getCameraIndex() {
@@ -79,6 +95,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         return mDriveReverse;
     }
 
+    @SuppressLint("CommitPrefEdits")
     public static void setCameraIndex(final Context context, final int cameraIndex) {
         mCameraIndex = cameraIndex;
 
@@ -99,27 +116,25 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         super.onCreate(savedInstanceState);
         Context context = getActivity();
 
-        addPreferencesFromResource(R.layout.settings_fragment);
+        addPreferencesFromResource(R.xml.settings_fragment);
 
         String key;
         String title;
 
         key = getString(R.string.preference_ros_core_key);
-        PreferenceCategory preferenceCategoryRosCore = (PreferenceCategory) this.findPreference(key);
-        if (preferenceCategoryRosCore != null) {
-            title = getString(R.string.preference_ros_core);
-            final String currentRosCore = getCurrentRosCore();
-            if (!currentRosCore.equals("")) {
-                title += " (" + getCurrentRosCore() + ")";
-            }
-            preferenceCategoryRosCore.setTitle(title);
-        }
+        mPreferenceCategoryRosCore = (PreferenceCategory) this.findPreference(key);
+        mPreferenceCategoryRosCore.setLayoutResource(R.layout.preference_category_detailed);
+
+        key = getString(R.string.option_is_public_master_key);
+        mCheckBoxPreferenceIsPublicMaster = (CheckBoxPreference) this.findPreference(key);
+        onPreferenceChange(mCheckBoxPreferenceIsPublicMaster, mIsPublicMaster);
+        mCheckBoxPreferenceIsPublicMaster.setOnPreferenceChangeListener(this);
 
         key = getString(R.string.option_master_uri_key);
         mEditTextPreferenceMasterUri = (EditTextPreference) this.findPreference(key);
-        title = getString(R.string.option_master_uri_title) + ": " + mMasterUri;
-        mEditTextPreferenceMasterUri.setTitle(title);
+        onPreferenceChange(mEditTextPreferenceMasterUri, mRemoteMasterUriIp);
         mEditTextPreferenceMasterUri.setOnPreferenceChangeListener(this);
+
 
         ArrayList<CharSequence> cameraEntries = getCameraEntries(context);
         ArrayList<CharSequence> cameraValues = getCameraValues();
@@ -187,9 +202,32 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         String key;
         String defaultValue;
 
+        key = context.getString(R.string.option_is_public_master_key);
+        mIsPublicMaster = settings.getBoolean(key, true);
+
+        try {
+            mLocalMasterUri = SettingsHelper.getNewPublicMasterUri();
+        } catch (MalformedURLException e) {
+            mLocalMasterUri = context.getString(R.string.option_master_uri_default_value);
+            try {
+                mLocalMasterUri = SettingsHelper.getMasterUri(mLocalMasterUri);
+            } catch (MalformedURLException e1) {
+                e1.printStackTrace();
+                mLocalMasterUri = "";
+            }
+        }
+
         key = context.getString(R.string.option_master_uri_key);
         defaultValue = context.getString(R.string.option_master_uri_default_value);
-        mMasterUri = settings.getString(key, defaultValue);
+        mRemoteMasterUriIp = settings.getString(key, defaultValue);
+        try {
+            mRemoteMasterUriIp = SettingsHelper.fixUrl(mRemoteMasterUriIp);
+            if (mRemoteMasterUriIp.equals("")) {
+                mRemoteMasterUriIp = context.getString(R.string.option_master_uri_default_value);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         // Loading static mCameraSizesSet:
         loadCameraSizesSet(context);
@@ -245,46 +283,60 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
         Context context = getActivity();
 
-        if (preference == mEditTextPreferenceMasterUri) {
-            mMasterUri = (String) newValue;
-            mEditTextPreferenceMasterUri.setTitle(R.string.option_master_uri_title);
-            mEditTextPreferenceMasterUri.setTitle(mEditTextPreferenceMasterUri.getTitle() + ": " + newValue);
+        if (preference == mCheckBoxPreferenceIsPublicMaster) {
+            mIsPublicMaster = (Boolean) newValue;
+            if (mIsPublicMaster) {
+                mCheckBoxPreferenceIsPublicMaster.setSummary(R.string.option_is_public_master_summary);
+            } else {
+                mCheckBoxPreferenceIsPublicMaster.setSummary(R.string.option_is_not_public_master_summary);
+            }
+            updateRosCoreGroupTitle();
             return true;
-        }
-
-        if (preference == mListPreferenceCamera) {
+        } else if (preference == mEditTextPreferenceMasterUri) {
+            String value = null;
+            try {
+                value = SettingsHelper.fixUrl((String) newValue);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            if (value == null) {
+                return false;
+            }
+            mRemoteMasterUriIp = value;
+            if (mRemoteMasterUriIp.equals("")) {
+                mRemoteMasterUriIp = getString(R.string.option_master_uri_default_value);
+                mEditTextPreferenceMasterUri.setSummary(getString(R.string.option_master_uri_summary));
+            } else {
+                mEditTextPreferenceMasterUri.setSummary(mRemoteMasterUriIp);
+            }
+            mEditTextPreferenceMasterUri.setText(mRemoteMasterUriIp);
+            updateRosCoreGroupTitle();
+            return true;
+        } else if (preference == mListPreferenceCamera) {
             mCameraIndex = Integer.valueOf((String) newValue);
             String title = getString(R.string.option_camera_index_title) +
                     ": " + getCameraValueDescription(mCameraIndex, context);
             mListPreferenceCamera.setTitle(title);
             sendCameraSettingsWereChangedBroadcast();
             return true;
-        }
-
-        if (preference == mListPreferenceFrontCameraMode) {
+        } else if (preference == mListPreferenceFrontCameraMode) {
             mFrontCameraMode = (String) newValue;
             String title = getString(R.string.option_front_camera_mode_title) +
                     ": " + getCameraModeValueDescription(mFrontCameraMode, mCameraSizesSet, context);
             mListPreferenceFrontCameraMode.setTitle(title);
             sendCameraSettingsWereChangedBroadcast();
             return true;
-        }
-
-        if (preference == mListPreferenceBackCameraMode) {
+        } else if (preference == mListPreferenceBackCameraMode) {
             mBackCameraMode = (String) newValue;
             String title = getString(R.string.option_back_camera_mode_title) +
                     ": " + getCameraModeValueDescription(mBackCameraMode, mCameraSizesSet, context);
             mListPreferenceBackCameraMode.setTitle(title);
             sendCameraSettingsWereChangedBroadcast();
             return true;
-        }
-
-        if (preference == mCheckBoxPreferenceDriveReverse) {
+        } else if (preference == mCheckBoxPreferenceDriveReverse) {
             mDriveReverse = (Boolean) newValue;
             return true;
-        }
-
-        if (preference == mEditTextPreferenceRoboBodyMac) {
+        } else if (preference == mEditTextPreferenceRoboBodyMac) {
             mRoboBodyMac = (String) newValue;
             mEditTextPreferenceRoboBodyMac.setTitle(R.string.option_robobody_mac_title);
             mEditTextPreferenceRoboBodyMac.setTitle(mEditTextPreferenceRoboBodyMac.getTitle() + ": " + newValue);
@@ -294,6 +346,24 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         return false;
     }
 
+    private void updateRosCoreGroupTitle() {
+        mPreferenceCategoryRosCore.setTitle(getString(R.string.preference_ros_core));
+
+        String masterUriPart;
+        try {
+            masterUriPart = " " + getMasterUri();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            masterUriPart = "";
+        }
+        Spannable spannable = new SpannableString(masterUriPart);
+        spannable.setSpan(new RelativeSizeSpan(0.7f),
+                0, spannable.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_highlight_color)),
+                0, spannable.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mPreferenceCategoryRosCore.setSummary(spannable);
+    }
+
     private void sendCameraSettingsWereChangedBroadcast() {
         Intent intent = new Intent(EyePreviewView.BROADCAST_CAMERA_SETTINGS_NAME);
         if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
@@ -301,33 +371,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         }
     }
 
-    private String getCurrentRosCore() {
-        final String ipAddressText = getIPAddress();
-        if (ipAddressText.equals("")) {
-            return "";
-        } else {
-            return mMasterUri
-                    .toLowerCase()
-                    .replaceFirst("localhost", ipAddressText);
-        }
-    }
-
-    public String getIPAddress() {
-        if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
-            final WifiManager wifiManager = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            if (wifiManager != null) {
-                final WifiInfo wifiInf = wifiManager.getConnectionInfo();
-                if (wifiInf != null) {
-                    final int ipAddress = wifiInf.getIpAddress();
-                    if (ipAddress != 0) {
-                        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-                    }
-                }
-            }
-        }
-        return "";
-    }
-
+    @SuppressLint("CommitPrefEdits")
     private static void loadCameraSizesSet(final Context context) {
         mCameraSizesSet = new CameraSizesSet();
 

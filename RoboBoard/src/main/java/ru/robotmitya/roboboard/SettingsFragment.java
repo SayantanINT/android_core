@@ -49,6 +49,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private EditTextPreference mEditTextPreferenceMasterUri;
     private ListPreference mListPreferenceRemoteControlMode;
     private ArrayList<CharSequence> mRemoteControlModeEntries;
+    private CheckBoxPreference mCheckBoxPreferenceLogging;
 
     public static boolean getIsPublicMaster() {
         return mIsPublicMaster;
@@ -86,6 +87,11 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         mEditTextPreferenceMasterUri = (EditTextPreference) this.findPreference(key);
         onPreferenceChange(mEditTextPreferenceMasterUri, mRemoteMasterUriIp);
         mEditTextPreferenceMasterUri.setOnPreferenceChangeListener(this);
+
+        key = getString(R.string.option_logging_key);
+        mCheckBoxPreferenceLogging = (CheckBoxPreference) this.findPreference(key);
+        onPreferenceChange(mCheckBoxPreferenceLogging, Log.getEnabled());
+        mCheckBoxPreferenceLogging.setOnPreferenceChangeListener(this);
 
 
         mRemoteControlModeEntries = new ArrayList<CharSequence>();
@@ -158,6 +164,9 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         key = context.getString(R.string.option_remote_control_mode_key);
         defaultValue = String.valueOf(REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
         mRemoteControlMode = Integer.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_logging_key);
+        Log.setEnabled(settings.getBoolean(key, false));
     }
 
     /**
@@ -212,6 +221,9 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
                 // OrientationView is always disabled in onStart method.
             }
             sendRemoteControlModeWasChangedBroadcast();
+            return true;
+        } else if (preference == mCheckBoxPreferenceLogging) {
+            Log.setEnabled((Boolean) newValue);
             return true;
         }
 

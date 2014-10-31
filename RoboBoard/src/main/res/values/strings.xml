@@ -22,8 +22,12 @@
     <string name="option_remote_control_mode_value_two_joysticks">0</string>
     <string name="option_remote_control_mode_value_device_orientation">1</string>
 
-    <string name="board_volts">V</string>
+    <string name="preference_other">Other</string>
+    <string name="option_logging_title">Logging</string>
+    <string name="option_logging_summary_off">Recommended for performance</string>
+    <string name="option_logging_summary_on">The option can slow down the app</string>
 
+    <string name="board_volts">V</string>
 
     <string name="board_orientation_calibrate_hint">Calibration</string>
     <string name="board_orientation_sensor_enabled_hint">Orientation sensor enabled</string>

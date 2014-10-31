@@ -10,4 +10,6 @@
 
     <string name="option_remote_control_mode_key">option_remote_control_mode</string>
 
+    <string name="option_logging_key">option_logging</string>
+
 </resources>

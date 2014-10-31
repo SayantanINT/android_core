@@ -15,10 +15,10 @@ public final class Log {
     /**
      * Flag to enable/disable logging.
      */
-    private static final boolean ENABLE_LOG;
+    private static boolean ENABLE_LOG;
 
     static {
-        ENABLE_LOG = BuildConfig.DEBUG;
+        ENABLE_LOG = false;
     }
 
     /**
@@ -27,6 +27,14 @@ public final class Log {
     public static final String LOG_TAG = "Mitya";
 
     private Log() { }
+
+    public static void setEnabled(final boolean enabled) {
+        ENABLE_LOG = enabled;
+    }
+
+    public static boolean getEnabled() {
+        return ENABLE_LOG;
+    }
 
     /**
      * Log details.

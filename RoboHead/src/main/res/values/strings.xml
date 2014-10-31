@@ -45,4 +45,9 @@
     <string name="option_robobody_mac_title">MAC-address of the robot</string>
     <string name="option_robobody_mac_summary">MAC-address of the Bluetooth adapter</string>
 
+    <string name="preference_other">Other</string>
+    <string name="option_logging_title">Logging</string>
+    <string name="option_logging_summary_off">Recommended for performance</string>
+    <string name="option_logging_summary_on">The option can slow down the app</string>
+
 </resources>

@@ -61,6 +61,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private ListPreference mListPreferenceFrontCameraMode;
     private ListPreference mListPreferenceBackCameraMode;
     private CheckBoxPreference mCheckBoxPreferenceDriveReverse;
+    private CheckBoxPreference mCheckBoxPreferenceLogging;
 
     /**
      * EditText for mRoboBodyMac option.
@@ -186,6 +187,11 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         title = getString(R.string.option_robobody_mac_title) + ": " + mRoboBodyMac;
         mEditTextPreferenceRoboBodyMac.setTitle(title);
         mEditTextPreferenceRoboBodyMac.setOnPreferenceChangeListener(this);
+
+        key = getString(R.string.option_logging_key);
+        mCheckBoxPreferenceLogging = (CheckBoxPreference) this.findPreference(key);
+        onPreferenceChange(mCheckBoxPreferenceLogging, Log.getEnabled());
+        mCheckBoxPreferenceLogging.setOnPreferenceChangeListener(this);
     }
 
     /**
@@ -268,6 +274,9 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         key = context.getString(R.string.option_robobody_mac_key);
         defaultValue = context.getString(R.string.option_robobody_mac_default_value);
         mRoboBodyMac = settings.getString(key, defaultValue);
+
+        key = context.getString(R.string.option_logging_key);
+        Log.setEnabled(settings.getBoolean(key, false));
     }
 
     /**
@@ -340,6 +349,9 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             mRoboBodyMac = (String) newValue;
             mEditTextPreferenceRoboBodyMac.setTitle(R.string.option_robobody_mac_title);
             mEditTextPreferenceRoboBodyMac.setTitle(mEditTextPreferenceRoboBodyMac.getTitle() + ": " + newValue);
+            return true;
+        } else if (preference == mCheckBoxPreferenceLogging) {
+            Log.setEnabled((Boolean) newValue);
             return true;
         }
 

@@ -89,7 +89,7 @@ public class MainActivity extends RosActivity {
     @Override
     public void startMasterChooser() {
         Intent data = new Intent();
-        data.putExtra("ROS_MASTER_URI", SettingsFragment.getMasterUri());
+        //data.putExtra("ROS_MASTER_URI", SettingsFragment.getMasterUri());
         data.putExtra("NEW_MASTER", true);
         data.putExtra("ROS_MASTER_PRIVATE", false);
         onActivityResult(0, RESULT_OK, data);

@@ -5,8 +5,11 @@
     <string name="dialog_settings_title">Application settings</string>
 
     <string name="preference_ros_core">ROS core</string>
-    <string name="option_master_uri_title">Master URI (http://&lt;ip address&gt;:&lt;port&gt;)</string>
-    <string name="option_master_uri_summary">URI of ROS core</string>
+    <string name="option_is_public_master_title">This device</string>
+    <string name="option_is_public_master_summary">Starts public master on this device</string>
+    <string name="option_is_not_public_master_summary">Set IP address where public master is running</string>
+    <string name="option_master_uri_title">Master URI IP address</string>
+    <string name="option_master_uri_summary">IP address of ROS core</string>
 
     <string name="preference_remote_control_mode">Remote control</string>
     <string name="option_remote_control_mode_title">Remote control mode</string>

@@ -4,16 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
+import android.preference.*;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
 import ru.robotmitya.robocommonlib.SensorOrientation;
+import ru.robotmitya.robocommonlib.SettingsHelper;
 
 /**
  * Created by dmitrydzz on 1/28/14.
@@ -30,7 +32,9 @@ import ru.robotmitya.robocommonlib.SensorOrientation;
  */
 public final class SettingsFragment extends PreferenceFragment implements OnPreferenceChangeListener {
 
-    private static String mMasterUri;
+    private static boolean mIsPublicMaster;
+    private static String mLocalMasterUri;
+    private static String mRemoteMasterUriIp;
     private static int mRemoteControlMode;
 
     public static class REMOTE_CONTROL_MODE {
@@ -39,12 +43,22 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         public final static int ORIENTATION = 1;
     }
 
+    private PreferenceCategory mPreferenceCategoryRosCore;
+    private CheckBoxPreference mCheckBoxPreferenceIsPublicMaster;
     private EditTextPreference mEditTextPreferenceMasterUri;
     private ListPreference mListPreferenceRemoteControlMode;
     private ArrayList<CharSequence> mRemoteControlModeEntries;
 
-    public static String getMasterUri() {
-        return mMasterUri;
+    public static boolean getIsPublicMaster() {
+        return mIsPublicMaster;
+    }
+
+    public static String getMasterUri() throws MalformedURLException {
+        if (mIsPublicMaster) {
+            return mLocalMasterUri;
+        }
+
+        return SettingsHelper.getMasterUri(mRemoteMasterUriIp);
     }
 
     public static int getRemoteControlMode() {
@@ -58,9 +72,19 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
         String key;
 
+        key = getString(R.string.preference_ros_core_key);
+        mPreferenceCategoryRosCore = (PreferenceCategory) this.findPreference(key);
+        mPreferenceCategoryRosCore.setLayoutResource(R.layout.preference_category_detailed);
+
+        key = getString(R.string.option_is_public_master_key);
+        mCheckBoxPreferenceIsPublicMaster = (CheckBoxPreference) this.findPreference(key);
+        onPreferenceChange(mCheckBoxPreferenceIsPublicMaster, mIsPublicMaster);
+        mCheckBoxPreferenceIsPublicMaster.setOnPreferenceChangeListener(this);
+
+
         key = getString(R.string.option_master_uri_key);
         mEditTextPreferenceMasterUri = (EditTextPreference) this.findPreference(key);
-        onPreferenceChange(mEditTextPreferenceMasterUri, mMasterUri);
+        onPreferenceChange(mEditTextPreferenceMasterUri, mRemoteMasterUriIp);
         mEditTextPreferenceMasterUri.setOnPreferenceChangeListener(this);
 
 
@@ -85,7 +109,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         final Context context = getActivity();
         final boolean hasOrientationSensors =
                 SensorOrientation.hasGyroscopeSensor(context) && SensorOrientation.hasGravitySensor(context);
-        mListPreferenceRemoteControlMode.setEnabled(hasOrientationSensors); //todo #8
+        mListPreferenceRemoteControlMode.setEnabled(hasOrientationSensors);
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -104,9 +128,32 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         String key;
         String defaultValue;
 
+        key = context.getString(R.string.option_is_public_master_key);
+        mIsPublicMaster = settings.getBoolean(key, false);
+
+        try {
+            mLocalMasterUri = SettingsHelper.getNewPublicMasterUri();
+        } catch (MalformedURLException e) {
+            mLocalMasterUri = context.getString(R.string.option_master_uri_default_value);
+            try {
+                mLocalMasterUri = SettingsHelper.getMasterUri(mLocalMasterUri);
+            } catch (MalformedURLException e1) {
+                e1.printStackTrace();
+                mLocalMasterUri = "";
+            }
+        }
+
         key = context.getString(R.string.option_master_uri_key);
         defaultValue = context.getString(R.string.option_master_uri_default_value);
-        mMasterUri = settings.getString(key, defaultValue);
+        mRemoteMasterUriIp = settings.getString(key, defaultValue);
+        try {
+            mRemoteMasterUriIp = SettingsHelper.fixUrl(mRemoteMasterUriIp);
+            if (mRemoteMasterUriIp.equals("")) {
+                mRemoteMasterUriIp = context.getString(R.string.option_master_uri_default_value);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         key = context.getString(R.string.option_remote_control_mode_key);
         defaultValue = String.valueOf(REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
@@ -124,13 +171,37 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             return false;
         }
 
-        String value = (String) newValue;
-
-        if (preference == mEditTextPreferenceMasterUri) {
-            mMasterUri = value;
-            mEditTextPreferenceMasterUri.setSummary(value);
+        if (preference == mCheckBoxPreferenceIsPublicMaster) {
+            mIsPublicMaster = (Boolean) newValue;
+            if (mIsPublicMaster) {
+                mCheckBoxPreferenceIsPublicMaster.setSummary(R.string.option_is_public_master_summary);
+            } else {
+                mCheckBoxPreferenceIsPublicMaster.setSummary(R.string.option_is_not_public_master_summary);
+            }
+            updateRosCoreGroupTitle();
+            return true;
+        } else if (preference == mEditTextPreferenceMasterUri) {
+            String value = null;
+            try {
+                value = SettingsHelper.fixUrl((String) newValue);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            if (value == null) {
+                return false;
+            }
+            mRemoteMasterUriIp = value;
+            if (mRemoteMasterUriIp.equals("")) {
+                mRemoteMasterUriIp = getString(R.string.option_master_uri_default_value);
+                mEditTextPreferenceMasterUri.setSummary(getString(R.string.option_master_uri_summary));
+            } else {
+                mEditTextPreferenceMasterUri.setSummary(mRemoteMasterUriIp);
+            }
+            mEditTextPreferenceMasterUri.setText(mRemoteMasterUriIp);
+            updateRosCoreGroupTitle();
             return true;
         } else if (preference == mListPreferenceRemoteControlMode) {
+            String value = (String) newValue;
             mRemoteControlMode = Integer.valueOf(value);
             mListPreferenceRemoteControlMode.setSummary(mRemoteControlModeEntries.get(mRemoteControlMode));
             if (mRemoteControlMode == REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
@@ -145,6 +216,24 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         }
 
         return false;
+    }
+
+    private void updateRosCoreGroupTitle() {
+        mPreferenceCategoryRosCore.setTitle(getString(R.string.preference_ros_core));
+
+        String masterUriPart;
+        try {
+            masterUriPart = " " + getMasterUri();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            masterUriPart = "";
+        }
+        Spannable spannable = new SpannableString(masterUriPart);
+        spannable.setSpan(new RelativeSizeSpan(0.7f),
+                0, spannable.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_highlight_color)),
+                0, spannable.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mPreferenceCategoryRosCore.setSummary(spannable);
     }
 
     private void sendActivateOrientationViewBroadcast(final boolean value) {

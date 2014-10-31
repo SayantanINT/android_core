@@ -8,4 +8,5 @@
     <color name="orientation_pointer_disabled_color">#ffaaaaaa</color>
     <color name="joystick_pointer_enabled_color">#ff33b5e5</color>
     <color name="joystick_pointer_disabled_color">#ffaaaaaa</color>
+    <color name="text_highlight_color">#ff33b5e5</color>
 </resources>

@@ -15,6 +15,9 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
 import ru.robotmitya.robocommonlib.AppConst;
+import ru.robotmitya.robocommonlib.SettingsHelper;
+
+import java.net.MalformedURLException;
 
 public class MainActivity extends RosActivity {
 
@@ -50,30 +53,23 @@ public class MainActivity extends RosActivity {
 
     @Override
     public void startMasterChooser() {
-        Intent data = new Intent();
-        data.putExtra("ROS_MASTER_URI", SettingsFragment.getMasterUri());
-        data.putExtra("NEW_MASTER", false);
-        data.putExtra("ROS_MASTER_PRIVATE", false);
-        onActivityResult(0, RESULT_OK, data);
+        try {
+            Intent data = new Intent();
+            String masterUri = SettingsFragment.getIsPublicMaster() ?
+                    SettingsHelper.getNewPublicMasterUri() : //actually, it is not used due to bug in android_core
+                    SettingsFragment.getMasterUri();
+            data.putExtra("ROS_MASTER_URI", masterUri);
+            data.putExtra("NEW_MASTER", SettingsFragment.getIsPublicMaster());
+            data.putExtra("ROS_MASTER_PRIVATE", false);
+            onActivityResult(0, RESULT_OK, data);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            super.startMasterChooser();
+        }
     }
 
     @Override
     protected void init(NodeMainExecutor nodeMainExecutor) {
-/*
-        if (mBoardNode != null) {
-            nodeMainExecutor.shutdownNodeMain(mBoardNode);
-        }
-        if (mVideoFragment.getImageView() != null) {
-            nodeMainExecutor.shutdownNodeMain(mVideoFragment.getImageView());
-        }
-        if (mBoardFragment.getDriveJoystick() != null) {
-            nodeMainExecutor.shutdownNodeMain(mBoardFragment.getDriveJoystick());
-        }
-        if (mBoardFragment.getHeadJoystick() != null) {
-            nodeMainExecutor.shutdownNodeMain(mBoardFragment.getHeadJoystick());
-        }
-*/
-
         NodeConfiguration nodeConfiguration =
                 NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress(), getMasterUri());
 

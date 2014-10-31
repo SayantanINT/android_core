@@ -30,6 +30,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import org.ros.RosCore;
+import org.ros.address.InetAddressFactory;
 import org.ros.android.android_gingerbread_mr1.R;
 import org.ros.concurrent.ListenerGroup;
 import org.ros.concurrent.SignalRunnable;
@@ -215,7 +216,10 @@ public class NodeMainExecutorService extends Service implements NodeMainExecutor
     if (isPrivate) {
       rosCore = RosCore.newPrivate();
     } else {
-      rosCore = RosCore.newPublic(11311);
+//      rosCore = RosCore.newPublic(11311);
+        String host = InetAddressFactory.newNonLoopback().getHostAddress();
+        rosCore = RosCore.newPublic(host, 11311);
+        Log.d("===", host);
     }
     rosCore.start();
     try {

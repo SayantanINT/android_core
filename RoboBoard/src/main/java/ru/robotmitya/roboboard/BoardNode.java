@@ -46,7 +46,8 @@ public class BoardNode implements NodeMain {
     private BroadcastReceiver mBroadcastReceiverForEyeTopic;
     private BroadcastReceiver mBroadcastReceiverForFaceTopic;
     private BroadcastReceiver mBroadcastReceiverForReflexTopic;
-    private BroadcastReceiver mBroadcastReceiverForHeadStateTopic;
+    private BroadcastReceiver mBroadcastReceiverChangedRemoteControlMode;
+    private BroadcastReceiver mBroadcastReceiverCalibrateOrientation;
 
     public BoardNode(final Context context) {
         mContext = context;
@@ -83,7 +84,7 @@ public class BoardNode implements NodeMain {
             }
         };
 
-        mBroadcastReceiverForHeadStateTopic = new BroadcastReceiver() {
+        mBroadcastReceiverChangedRemoteControlMode = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 final int remoteControlMode = intent.getIntExtra(
@@ -91,6 +92,14 @@ public class BoardNode implements NodeMain {
                         SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
                 final short value = getRemoteControlModeCommandValue(remoteControlMode);
                 final String command = MessageHelper.makeMessage(Rs.Instruction.ID, value);
+                publishToHeadTopic(command);
+            }
+        };
+
+        mBroadcastReceiverCalibrateOrientation = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                final String command = MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.REMOTE_CONTROL_MODE_CALIBRATE);
                 publishToHeadTopic(command);
             }
         };
@@ -178,7 +187,9 @@ public class BoardNode implements NodeMain {
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
                 mBroadcastReceiverForReflexTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_REFLEX_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverForHeadStateTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME));
+                mBroadcastReceiverChangedRemoteControlMode, new IntentFilter(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME));
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(
+                mBroadcastReceiverCalibrateOrientation, new IntentFilter(AppConst.RoboBoard.Broadcast.ORIENTATION_CALIBRATE));
     }
 
     private void finalizeBroadcasts() {
@@ -186,7 +197,8 @@ public class BoardNode implements NodeMain {
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForEyeTopic);
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForFaceTopic);
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForReflexTopic);
-        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForHeadStateTopic);
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverChangedRemoteControlMode);
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverCalibrateOrientation);
     }
 
     private void sendInitRequest() {

@@ -65,6 +65,7 @@ public final class AppConst {
         public static final String REFLEX_TOPIC = "robot_mitya/reflex";
         public static final String DRIVE_TOPIC = "robot_mitya/drive";
         public static final String HEAD_TOPIC = "robot_mitya/head";
+        public static final String CONTROL_MODE_TOPIC = "robot_mitya/control_mode";
         public static final String HEAD_STATE_TOPIC = "robot_mitya/head_state";
     }
 
@@ -73,6 +74,11 @@ public final class AppConst {
             public static final int DISABLED = 0;
             public static final int FRONT = 1;
             public static final int BACK = 2;
+        }
+
+        public final class ControlMode {
+            public static final int TWO_JOYSTICKS = 0;
+            public static final int ORIENTATION = 1;
         }
     }
 

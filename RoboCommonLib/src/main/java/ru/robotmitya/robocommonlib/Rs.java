@@ -26,10 +26,10 @@ public class Rs {
         public static final short ACCUMULATOR_ROBOHEAD_CHARGING_STOP = 0x0040;
         public static final short ACCUMULATOR_ROBOHEAD_CHARGING_START = 0x0041;
 
-        public static final short REMOTE_CONTROL_MODE_TWO_JOYSTICKS = 0x0050;
-        public static final short REMOTE_CONTROL_MODE_ORIENTATION = 0x0051;
+        public static final short CONTROL_MODE_TWO_JOYSTICKS = 0x0050;
+        public static final short CONTROL_MODE_ORIENTATION = 0x0051;
 
-        public static final short REMOTE_CONTROL_MODE_CALIBRATE = 0x005f;
+        public static final short CONTROL_MODE_CALIBRATE = 0x005f;
     }
 
     public class Mood {

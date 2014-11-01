@@ -38,12 +38,6 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
     private static int mRemoteControlMode;
 
-    public static class REMOTE_CONTROL_MODE {
-        public final static int TWO_JOYSTICKS = 0;
-        @SuppressWarnings("UnusedDeclaration")
-        public final static int ORIENTATION = 1;
-    }
-
     private PreferenceCategory mPreferenceCategoryRosCore;
     private CheckBoxPreference mCheckBoxPreferenceIsPublicMaster;
     private EditTextPreference mEditTextPreferenceMasterUri;
@@ -162,7 +156,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         }
 
         key = context.getString(R.string.option_remote_control_mode_key);
-        defaultValue = String.valueOf(REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
+        defaultValue = String.valueOf(AppConst.Common.ControlMode.TWO_JOYSTICKS);
         mRemoteControlMode = Integer.valueOf(settings.getString(key, defaultValue));
 
         key = context.getString(R.string.option_logging_key);
@@ -213,10 +207,10 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             String value = (String) newValue;
             mRemoteControlMode = Integer.valueOf(value);
             mListPreferenceRemoteControlMode.setSummary(mRemoteControlModeEntries.get(mRemoteControlMode));
-            if (mRemoteControlMode == REMOTE_CONTROL_MODE.TWO_JOYSTICKS) {
+            if (mRemoteControlMode == AppConst.Common.ControlMode.TWO_JOYSTICKS) {
                 sendActivateOrientationViewBroadcast(false);
                 sendActivateHeadJoystickBroadcast(true);
-            } else if (mRemoteControlMode == REMOTE_CONTROL_MODE.ORIENTATION) {
+            } else if (mRemoteControlMode == AppConst.Common.ControlMode.ORIENTATION) {
                 sendActivateHeadJoystickBroadcast(false);
                 // OrientationView is always disabled in onStart method.
             }

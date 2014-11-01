@@ -39,7 +39,7 @@ public class BoardNode implements NodeMain {
     private Publisher<std_msgs.String> mFacePublisher;
     private Publisher<std_msgs.String> mReflexPublisher;
     private Publisher<std_msgs.String> mBodyPublisher;
-    private Publisher<std_msgs.String> mHeadPublisher;
+    private Publisher<std_msgs.String> mControlModePublisher;
     private Publisher<std_msgs.String> mHeadStatePublisher;
 
     private BroadcastReceiver mBroadcastReceiverForBodyTopic;
@@ -89,7 +89,7 @@ public class BoardNode implements NodeMain {
             public void onReceive(Context context, Intent intent) {
                 final int remoteControlMode = intent.getIntExtra(
                         AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME,
-                        SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
+                        AppConst.Common.ControlMode.TWO_JOYSTICKS);
                 final short value = getRemoteControlModeCommandValue(remoteControlMode);
                 final String command = MessageHelper.makeMessage(Rs.Instruction.ID, value);
                 publishToHeadTopic(command);
@@ -99,7 +99,7 @@ public class BoardNode implements NodeMain {
         mBroadcastReceiverCalibrateOrientation = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                final String command = MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.REMOTE_CONTROL_MODE_CALIBRATE);
+                final String command = MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.CONTROL_MODE_CALIBRATE);
                 publishToHeadTopic(command);
             }
         };
@@ -107,12 +107,12 @@ public class BoardNode implements NodeMain {
 
     private short getRemoteControlModeCommandValue(final int remoteControlMode) {
         switch (remoteControlMode) {
-            case SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS:
-                return Rs.Instruction.REMOTE_CONTROL_MODE_TWO_JOYSTICKS;
-            case SettingsFragment.REMOTE_CONTROL_MODE.ORIENTATION:
-                return Rs.Instruction.REMOTE_CONTROL_MODE_ORIENTATION;
+            case AppConst.Common.ControlMode.TWO_JOYSTICKS:
+                return Rs.Instruction.CONTROL_MODE_TWO_JOYSTICKS;
+            case AppConst.Common.ControlMode.ORIENTATION:
+                return Rs.Instruction.CONTROL_MODE_ORIENTATION;
             default:
-                return Rs.Instruction.REMOTE_CONTROL_MODE_TWO_JOYSTICKS;
+                return Rs.Instruction.CONTROL_MODE_TWO_JOYSTICKS;
         }
     }
 
@@ -127,7 +127,7 @@ public class BoardNode implements NodeMain {
         mFacePublisher = connectedNode.newPublisher(AppConst.RoboHead.FACE_TOPIC, std_msgs.String._TYPE);
         mReflexPublisher = connectedNode.newPublisher(AppConst.RoboHead.REFLEX_TOPIC, std_msgs.String._TYPE);
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
-        mHeadPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_TOPIC, std_msgs.String._TYPE);
+        mControlModePublisher = connectedNode.newPublisher(AppConst.RoboHead.CONTROL_MODE_TOPIC, std_msgs.String._TYPE);
         mHeadStatePublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_STATE_TOPIC, std_msgs.String._TYPE);
 
         RoboState.setSelectedCamIndex(NO_CAM);
@@ -208,7 +208,7 @@ public class BoardNode implements NodeMain {
         publishToBodyTopic(stateRequestCommand);
         publishToHeadTopic(MessageHelper.makeMessage(Rs.Instruction.ID,
                 getRemoteControlModeCommandValue(SettingsFragment.getRemoteControlMode())));
-        publishToHeadTopic(MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.REMOTE_CONTROL_MODE_CALIBRATE));
+        publishToHeadTopic(MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.CONTROL_MODE_CALIBRATE));
         publishToHeadStateTopic(MessageHelper.makeMessage(Rs.BatteryRequest.ID, Rs.BatteryRequest.ROBOHEAD_BATTERY));
     }
 
@@ -254,7 +254,7 @@ public class BoardNode implements NodeMain {
     }
 
     public void publishToHeadTopic(final String message) {
-        publishCommand(mHeadPublisher, message);
+        publishCommand(mControlModePublisher, message);
     }
 
     public void publishToHeadStateTopic(final String message) {

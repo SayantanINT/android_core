@@ -264,11 +264,11 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     }
 
     private void sendRemoteControlModeWasChangedBroadcast(final int remoteControlMode) {
-        Intent intent = new Intent(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME);
-        intent.putExtra(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME, remoteControlMode);
+        Intent intent = new Intent(AppConst.RoboBoard.Broadcast.CONTROL_MODE_SETTINGS_NAME);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.CONTROL_MODE_SETTINGS_EXTRA_NAME, remoteControlMode);
         if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
             LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
-            Log.d(this, AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME + " was sent (mode " + remoteControlMode + ")");
+            Log.d(this, AppConst.RoboBoard.Broadcast.CONTROL_MODE_SETTINGS_NAME + " was sent (mode " + remoteControlMode + ")");
         }
     }
 }

@@ -34,8 +34,8 @@ public final class AppConst {
             public static final String MESSAGE_TO_REFLEX_EXTRA_NAME = "message";
 
             // Used to send signal to BoardNode to send command that will change remote control mode in RoboHead.
-            public static final String REMOTE_CONTROL_MODE_SETTINGS_NAME = "ru.robotmitya.robohead.REMOTE_CONTROL_MODE_SETTINGS";
-            public static final String REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME = "mode";
+            public static final String CONTROL_MODE_SETTINGS_NAME = "ru.robotmitya.robohead.CONTROL_MODE_SETTINGS";
+            public static final String CONTROL_MODE_SETTINGS_EXTRA_NAME = "mode";
 
             public static final String ORIENTATION_CALIBRATE = "ru.robotmitya.roboboard.BOARD-ORIENTATION-CALIBRATE";
             public static final String ORIENTATION_ACTIVATE = "ru.robotmitya.roboboard.BOARD-ORIENTATION-ACTIVATE";

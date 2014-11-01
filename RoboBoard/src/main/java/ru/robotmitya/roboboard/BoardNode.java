@@ -88,7 +88,7 @@ public class BoardNode implements NodeMain {
             @Override
             public void onReceive(Context context, Intent intent) {
                 final int remoteControlMode = intent.getIntExtra(
-                        AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME,
+                        AppConst.RoboBoard.Broadcast.CONTROL_MODE_SETTINGS_EXTRA_NAME,
                         AppConst.Common.ControlMode.TWO_JOYSTICKS);
                 final short value = getRemoteControlModeCommandValue(remoteControlMode);
                 final String command = MessageHelper.makeMessage(Rs.Instruction.ID, value);
@@ -187,7 +187,7 @@ public class BoardNode implements NodeMain {
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
                 mBroadcastReceiverForReflexTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_REFLEX_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
-                mBroadcastReceiverChangedRemoteControlMode, new IntentFilter(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME));
+                mBroadcastReceiverChangedRemoteControlMode, new IntentFilter(AppConst.RoboBoard.Broadcast.CONTROL_MODE_SETTINGS_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
                 mBroadcastReceiverCalibrateOrientation, new IntentFilter(AppConst.RoboBoard.Broadcast.ORIENTATION_CALIBRATE));
     }

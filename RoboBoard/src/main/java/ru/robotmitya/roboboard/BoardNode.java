@@ -118,7 +118,7 @@ public class BoardNode implements NodeMain {
         mFacePublisher = connectedNode.newPublisher(AppConst.RoboHead.FACE_TOPIC, std_msgs.String._TYPE);
         mReflexPublisher = connectedNode.newPublisher(AppConst.RoboHead.REFLEX_TOPIC, std_msgs.String._TYPE);
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
-        mHeadPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC, std_msgs.String._TYPE);
+        mHeadPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_TOPIC, std_msgs.String._TYPE);
         mHeadStatePublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_STATE_TOPIC, std_msgs.String._TYPE);
 
         RoboState.setSelectedCamIndex(NO_CAM);

@@ -23,20 +23,20 @@ import ru.robotmitya.robocommonlib.Rs;
  * Created by dmitrydzz on 4/12/14.
  *
  */
-public class DriveJoystickAnalyzerNode implements NodeMain {
+public class DriveAnalyzerNode implements NodeMain {
 
     private Publisher<std_msgs.String> mBodyPublisher;
 
     @Override
     public GraphName getDefaultNodeName() {
-        return GraphName.of(AppConst.RoboHead.DRIVE_JOYSTICK_ANALYZER_NODE);
+        return GraphName.of(AppConst.RoboHead.DRIVE_ANALYZER_NODE);
     }
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
 
-        Subscriber<Twist> subscriber = connectedNode.newSubscriber(AppConst.RoboHead.DRIVE_JOYSTICK_TOPIC, geometry_msgs.Twist._TYPE);
+        Subscriber<Twist> subscriber = connectedNode.newSubscriber(AppConst.RoboHead.DRIVE_TOPIC, geometry_msgs.Twist._TYPE);
         subscriber.addMessageListener(new MessageListener<Twist>() {
             @Override
             public void onNewMessage(geometry_msgs.Twist message) {
@@ -44,7 +44,7 @@ public class DriveJoystickAnalyzerNode implements NodeMain {
                 Vector3 angular = message.getAngular();
                 double x = -angular.getZ();
                 double y = linear.getX();
-                Log.messageReceived(DriveJoystickAnalyzerNode.this, String.format("x=%.3f, y=%.3f", x, y));
+                Log.messageReceived(DriveAnalyzerNode.this, String.format("x=%.3f, y=%.3f", x, y));
 
                 MotorsSpeed motorsSpeed = new MotorsSpeed();
                 calculateMotorsSpeed(x, y, motorsSpeed);

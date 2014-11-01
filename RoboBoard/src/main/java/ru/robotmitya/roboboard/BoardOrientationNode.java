@@ -57,7 +57,7 @@ public class BoardOrientationNode implements NodeMain {
     public void onStart(ConnectedNode connectedNode) {
         mEnabled = false;
 
-        mPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC, Twist._TYPE);
+        mPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_TOPIC, Twist._TYPE);
 
         mSensorOrientation.start();
         mStarting = true;

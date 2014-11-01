@@ -56,15 +56,15 @@ public final class AppConst {
         public static final String FACE_NODE = "robot_mitya/face_node";
         public static final String HEAD_STATE_NODE = "robot_mitya/head_state_node";
         public static final String REFLEX_NODE = "robot_mitya/reflex_node";
-        public static final String DRIVE_JOYSTICK_ANALYZER_NODE = "robot_mitya/drive_joystick_analyzer_node";
-        public static final String HEAD_JOYSTICK_ANALYZER_NODE = "robot_mitya/head_joystick_analyzer_node";
+        public static final String DRIVE_ANALYZER_NODE = "robot_mitya/drive_analyzer_node";
+        public static final String HEAD_ANALYZER_NODE = "robot_mitya/head_analyzer_node";
 
         public static final String EYE_TOPIC = "robot_mitya/eye";
         public static final String FACE_TOPIC = "robot_mitya/face";
         public static final String BODY_TOPIC = "robot_mitya/body";
         public static final String REFLEX_TOPIC = "robot_mitya/reflex";
-        public static final String DRIVE_JOYSTICK_TOPIC = "robot_mitya/drive_joystick";
-        public static final String HEAD_JOYSTICK_TOPIC = "robot_mitya/head_joystick";
+        public static final String DRIVE_TOPIC = "robot_mitya/drive";
+        public static final String HEAD_TOPIC = "robot_mitya/head";
         public static final String HEAD_STATE_TOPIC = "robot_mitya/head_state";
     }
 

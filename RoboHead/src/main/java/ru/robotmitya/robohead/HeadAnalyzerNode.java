@@ -20,7 +20,7 @@ import ru.robotmitya.robocommonlib.Rs;
  * Created by dmitrydzz on 4/12/14.
  *
  */
-public class HeadJoystickAnalyzerNode implements NodeMain {
+public class HeadAnalyzerNode implements NodeMain {
     private static final float SMOOTH_FACTOR = 0.9f;
 
     private Publisher<std_msgs.String> mBodyPublisher;
@@ -30,14 +30,14 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
 
     @Override
     public GraphName getDefaultNodeName() {
-        return GraphName.of(AppConst.RoboHead.HEAD_JOYSTICK_ANALYZER_NODE);
+        return GraphName.of(AppConst.RoboHead.HEAD_ANALYZER_NODE);
     }
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
 
-        Subscriber<geometry_msgs.Twist> subscriber = connectedNode.newSubscriber(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC, geometry_msgs.Twist._TYPE);
+        Subscriber<geometry_msgs.Twist> subscriber = connectedNode.newSubscriber(AppConst.RoboHead.HEAD_TOPIC, geometry_msgs.Twist._TYPE);
         subscriber.addMessageListener(new MessageListener<geometry_msgs.Twist>() {
             @Override
             public void onNewMessage(geometry_msgs.Twist message) {
@@ -59,7 +59,7 @@ public class HeadJoystickAnalyzerNode implements NodeMain {
                     mSmoothedPosition.lerp(mPosition, SMOOTH_FACTOR);
                 }
 
-                Log.messageReceived(HeadJoystickAnalyzerNode.this, String.format("x=%.3f, y=%.3f", mSmoothedPosition.x, mSmoothedPosition.y));
+                Log.messageReceived(HeadAnalyzerNode.this, String.format("x=%.3f, y=%.3f", mSmoothedPosition.x, mSmoothedPosition.y));
 
                 short horizontalDegree = getHorizontalDegree(mSmoothedPosition);
                 short verticalDegree = getVerticalDegree(mSmoothedPosition);

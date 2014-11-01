@@ -260,7 +260,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
     private void sendActivateHeadJoystickBroadcast(final boolean value) {
         Intent intent = new Intent(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE);
-        intent.putExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_TOPIC, AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_TOPIC, AppConst.RoboHead.HEAD_TOPIC);
         intent.putExtra(AppConst.RoboBoard.Broadcast.JOYSTICK_ACTIVATE_EXTRA_ENABLED, value);
         if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
             LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);

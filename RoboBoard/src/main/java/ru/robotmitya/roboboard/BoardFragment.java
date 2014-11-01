@@ -333,11 +333,11 @@ public class BoardFragment extends Fragment {
 
         // Joysticks:
         mDriveJoystick = (RoboJoystickView) result.findViewById(R.id.drive_joystick);
-        mDriveJoystick.setTopicName(AppConst.RoboHead.DRIVE_JOYSTICK_TOPIC);
+        mDriveJoystick.setTopicName(AppConst.RoboHead.DRIVE_TOPIC);
         mDriveJoystick.setMoveToZeroWhenReleased(true);
 
         mHeadJoystick = (RoboJoystickView) result.findViewById(R.id.head_joystick);
-        mHeadJoystick.setTopicName(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC);
+        mHeadJoystick.setTopicName(AppConst.RoboHead.HEAD_TOPIC);
         mHeadJoystick.setMoveToZeroWhenReleased(false);
 
         mHeadOrientation = (OrientationView) result.findViewById(R.id.head_orientation);

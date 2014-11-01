@@ -39,12 +39,14 @@ public class BoardNode implements NodeMain {
     private Publisher<std_msgs.String> mFacePublisher;
     private Publisher<std_msgs.String> mReflexPublisher;
     private Publisher<std_msgs.String> mBodyPublisher;
+    private Publisher<std_msgs.String> mHeadPublisher;
     private Publisher<std_msgs.String> mHeadStatePublisher;
 
     private BroadcastReceiver mBroadcastReceiverForBodyTopic;
     private BroadcastReceiver mBroadcastReceiverForEyeTopic;
     private BroadcastReceiver mBroadcastReceiverForFaceTopic;
     private BroadcastReceiver mBroadcastReceiverForReflexTopic;
+    private BroadcastReceiver mBroadcastReceiverForHeadStateTopic;
 
     public BoardNode(final Context context) {
         mContext = context;
@@ -80,6 +82,29 @@ public class BoardNode implements NodeMain {
                 publishToReflexTopic(command);
             }
         };
+
+        mBroadcastReceiverForHeadStateTopic = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                final int remoteControlMode = intent.getIntExtra(
+                        AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME,
+                        SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS);
+                final short value = getRemoteControlModeCommandValue(remoteControlMode);
+                final String command = MessageHelper.makeMessage(Rs.Instruction.ID, value);
+                publishToHeadTopic(command);
+            }
+        };
+    }
+
+    private short getRemoteControlModeCommandValue(final int remoteControlMode) {
+        switch (remoteControlMode) {
+            case SettingsFragment.REMOTE_CONTROL_MODE.TWO_JOYSTICKS:
+                return Rs.Instruction.REMOTE_CONTROL_MODE_TWO_JOYSTICKS;
+            case SettingsFragment.REMOTE_CONTROL_MODE.ORIENTATION:
+                return Rs.Instruction.REMOTE_CONTROL_MODE_ORIENTATION;
+            default:
+                return Rs.Instruction.REMOTE_CONTROL_MODE_TWO_JOYSTICKS;
+        }
     }
 
     @Override
@@ -93,6 +118,7 @@ public class BoardNode implements NodeMain {
         mFacePublisher = connectedNode.newPublisher(AppConst.RoboHead.FACE_TOPIC, std_msgs.String._TYPE);
         mReflexPublisher = connectedNode.newPublisher(AppConst.RoboHead.REFLEX_TOPIC, std_msgs.String._TYPE);
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
+        mHeadPublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_JOYSTICK_TOPIC, std_msgs.String._TYPE);
         mHeadStatePublisher = connectedNode.newPublisher(AppConst.RoboHead.HEAD_STATE_TOPIC, std_msgs.String._TYPE);
 
         RoboState.setSelectedCamIndex(NO_CAM);
@@ -136,7 +162,7 @@ public class BoardNode implements NodeMain {
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    sendRoboStateRequest();
+                    sendInitRequest();
                 }
             }, delay);
         }
@@ -151,6 +177,8 @@ public class BoardNode implements NodeMain {
                 mBroadcastReceiverForFaceTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_FACE_NAME));
         LocalBroadcastManager.getInstance(mContext).registerReceiver(
                 mBroadcastReceiverForReflexTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.MESSAGE_TO_REFLEX_NAME));
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(
+                mBroadcastReceiverForHeadStateTopic, new IntentFilter(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME));
     }
 
     private void finalizeBroadcasts() {
@@ -158,13 +186,17 @@ public class BoardNode implements NodeMain {
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForEyeTopic);
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForFaceTopic);
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForReflexTopic);
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiverForHeadStateTopic);
     }
 
-    public void sendRoboStateRequest() {
+    private void sendInitRequest() {
         String stateRequestCommand = MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.STATE_REQUEST);
         publishToFaceTopic(stateRequestCommand);
         publishToEyeTopic(stateRequestCommand);
         publishToBodyTopic(stateRequestCommand);
+        publishToHeadTopic(MessageHelper.makeMessage(Rs.Instruction.ID,
+                getRemoteControlModeCommandValue(SettingsFragment.getRemoteControlMode())));
+        publishToHeadTopic(MessageHelper.makeMessage(Rs.Instruction.ID, Rs.Instruction.REMOTE_CONTROL_MODE_CALIBRATE));
         publishToHeadStateTopic(MessageHelper.makeMessage(Rs.BatteryRequest.ID, Rs.BatteryRequest.ROBOHEAD_BATTERY));
     }
 
@@ -207,6 +239,10 @@ public class BoardNode implements NodeMain {
 
     public void publishToBodyTopic(final String message) {
         publishCommand(mBodyPublisher, message);
+    }
+
+    public void publishToHeadTopic(final String message) {
+        publishCommand(mHeadPublisher, message);
     }
 
     public void publishToHeadStateTopic(final String message) {

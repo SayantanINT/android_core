@@ -220,7 +220,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
                 sendActivateHeadJoystickBroadcast(false);
                 // OrientationView is always disabled in onStart method.
             }
-            sendRemoteControlModeWasChangedBroadcast();
+            sendRemoteControlModeWasChangedBroadcast(mRemoteControlMode);
             return true;
         } else if (preference == mCheckBoxPreferenceLogging) {
             Log.setEnabled((Boolean) newValue);
@@ -269,11 +269,12 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         }
     }
 
-    private void sendRemoteControlModeWasChangedBroadcast() {
+    private void sendRemoteControlModeWasChangedBroadcast(final int remoteControlMode) {
         Intent intent = new Intent(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME);
+        intent.putExtra(AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_EXTRA_NAME, remoteControlMode);
         if ((getActivity() != null) && (getActivity().getApplicationContext() != null)) {
             LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).sendBroadcast(intent);
-            Log.d(this, AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME + " was sent");
+            Log.d(this, AppConst.RoboBoard.Broadcast.REMOTE_CONTROL_MODE_SETTINGS_NAME + " was sent (mode " + remoteControlMode + ")");
         }
     }
 }

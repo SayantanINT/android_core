@@ -28,10 +28,10 @@ public class RoboState {
     private final static float mHeadVerticalServoMinRad = mHeadVerticalServoMinDegree * MathUtils.degreesToRadians;
     private final static float mHeadVerticalServoMaxRad = mHeadVerticalServoMaxDegree * MathUtils.degreesToRadians;
 
-    private static short mMood;
+    private final static short mHeadHorizontalZeroDegree = (mHeadHorizontalServoMaxDegree - mHeadHorizontalServoMinDegree) / 2;
+    private final static short mHeadVerticalZeroDegree = (mHeadVerticalServoMaxDegree - mHeadVerticalServoMinDegree) / 2;
 
-    private static double mHorizontalZeroOrientation;
-    private static double mVerticalZeroOrientation;
+    private static short mMood;
 
     static {
         mHeadlights = Rs.Instruction.HEADLIGHTS_OFF;
@@ -46,11 +46,6 @@ public class RoboState {
         mRoboHeadBatteryState = Rs.BatteryResponse.ROBOHEAD_BATTERY;
 
         mMood = Rs.Mood.FACE_OK;
-
-        double horizontalZeroOrientationInRadians = 0.0;
-        mHorizontalZeroOrientation = horizontalZeroOrientationInRadians * 1.0 / Math.PI;
-        double verticalZeroOrientationInRadians = Math.PI / 2.0;
-        mVerticalZeroOrientation = verticalZeroOrientationInRadians * 1.0 / Math.PI;
     }
 
 
@@ -182,12 +177,12 @@ public class RoboState {
 
     // Zero orientation
 
-    public static double getHorizontalZeroOrientation() {
-        return mHorizontalZeroOrientation;
+    public static short getHeadHorizontalZeroDegree() {
+        return mHeadHorizontalZeroDegree;
     }
 
-    public static double getVerticalZeroOrientation() {
-        return mVerticalZeroOrientation;
+    public static short getHeadVerticalZeroDegree() {
+        return mHeadVerticalZeroDegree;
     }
 
 }

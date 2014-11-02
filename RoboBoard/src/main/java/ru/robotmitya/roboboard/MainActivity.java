@@ -15,6 +15,7 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
 import ru.robotmitya.robocommonlib.AppConst;
+import ru.robotmitya.robocommonlib.SensorOrientation;
 import ru.robotmitya.robocommonlib.SettingsHelper;
 
 import java.net.MalformedURLException;
@@ -46,7 +47,7 @@ public class MainActivity extends RosActivity {
         fragmentTransaction.add(R.id.board_fragment, mBoardFragment);
         fragmentTransaction.commit();
 
-        mBoardOrientationNode = new BoardOrientationNode(this, getRotation(this));
+        mBoardOrientationNode = new BoardOrientationNode(this, SensorOrientation.getRotation(this));
 
         SettingsFragment.initialize(this);
     }
@@ -78,28 +79,5 @@ public class MainActivity extends RosActivity {
         nodeMainExecutor.execute(mBoardFragment.getDriveJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.DRIVE_JOYSTICK_NODE));
         nodeMainExecutor.execute(mBoardFragment.getHeadJoystick(), nodeConfiguration.setNodeName(AppConst.RoboBoard.HEAD_JOYSTICK_NODE));
         nodeMainExecutor.execute(mBoardOrientationNode, nodeConfiguration.setNodeName(AppConst.RoboBoard.ORIENTATION_NODE));
-    }
-
-    private static int getRotation (Context context) {
-        int orientation;
-
-        if (context instanceof Activity) {
-            orientation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
-        } else {
-            orientation = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-        }
-
-        switch (orientation) {
-            case Surface.ROTATION_0:
-                return 0;
-            case Surface.ROTATION_90:
-                return 90;
-            case Surface.ROTATION_180:
-                return 180;
-            case Surface.ROTATION_270:
-                return 270;
-            default:
-                return 0;
-        }
     }
 }

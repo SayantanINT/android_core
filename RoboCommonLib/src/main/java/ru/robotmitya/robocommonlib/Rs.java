@@ -83,6 +83,14 @@ public class Rs {
         public static final String ID = "V";
     }
 
+    public class HeadHorizontalRotationPeriod {
+        public static final String ID = "h";
+    }
+
+    public class HeadVerticalRotationPeriod {
+        public static final String ID = "v";
+    }
+
     public class DriveLeft {
         public static final String ID = "L";
     }

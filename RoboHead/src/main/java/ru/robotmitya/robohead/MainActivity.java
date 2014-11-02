@@ -18,6 +18,7 @@ import org.ros.node.NodeMainExecutor;
 
 import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
+import ru.robotmitya.robocommonlib.SensorOrientation;
 import ru.robotmitya.robocommonlib.SettingsHelper;
 
 import java.net.MalformedURLException;
@@ -127,7 +128,7 @@ public class MainActivity extends RosActivity {
         DriveAnalyzerNode driveAnalyzerNode = new DriveAnalyzerNode();
         nodeMainExecutor.execute(driveAnalyzerNode, nodeConfiguration);
 
-        HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode();
+        HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this));
         nodeMainExecutor.execute(headAnalyzerNode, nodeConfiguration);
     }
 

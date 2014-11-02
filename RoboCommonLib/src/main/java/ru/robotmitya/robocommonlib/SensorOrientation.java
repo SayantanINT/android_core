@@ -1,10 +1,13 @@
 package ru.robotmitya.robocommonlib;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.Surface;
+import android.view.WindowManager;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 
@@ -158,5 +161,29 @@ public abstract class SensorOrientation implements SensorEventListener {
     public static boolean hasGravitySensor(Context context) {
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         return sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null;
+    }
+
+    @SuppressWarnings("unused")
+    public static int getRotation (Context context) {
+        int orientation;
+
+        if (context instanceof Activity) {
+            orientation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
+        } else {
+            orientation = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        }
+
+        switch (orientation) {
+            case Surface.ROTATION_0:
+                return 0;
+            case Surface.ROTATION_90:
+                return 90;
+            case Surface.ROTATION_180:
+                return 180;
+            case Surface.ROTATION_270:
+                return 270;
+            default:
+                return 0;
+        }
     }
 }

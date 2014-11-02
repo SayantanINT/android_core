@@ -219,7 +219,6 @@ public class NodeMainExecutorService extends Service implements NodeMainExecutor
 //      rosCore = RosCore.newPublic(11311);
         String host = InetAddressFactory.newNonLoopback().getHostAddress();
         rosCore = RosCore.newPublic(host, 11311);
-        Log.d("===", host);
     }
     rosCore.start();
     try {

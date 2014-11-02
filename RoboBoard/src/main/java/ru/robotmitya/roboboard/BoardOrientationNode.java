@@ -161,6 +161,7 @@ public class BoardOrientationNode implements NodeMain {
             Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(50);
         }
-        mSensorOrientation.calibrate(new Quaternion(new Vector3(0, 0, 1), 90));
+
+        SensorOrientationHelper.calibrate(mSensorOrientation);
     }
 }

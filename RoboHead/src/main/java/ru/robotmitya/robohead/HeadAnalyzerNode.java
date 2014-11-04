@@ -40,6 +40,9 @@ public class HeadAnalyzerNode implements NodeMain {
     private volatile float mCurrentAzimuth = 0;
     private volatile float mCurrentPitch = 0;
 
+    private volatile float mTargetAzimuth = 0;
+    private volatile float mTargetPitch = 0;
+
     private volatile boolean mCalibrating = false;
 
     public HeadAnalyzerNode(Context context, int screenRotation) {
@@ -84,25 +87,23 @@ public class HeadAnalyzerNode implements NodeMain {
 
 
 
-/*
-                com.badlogic.gdx.math.Vector3 xG = new com.badlogic.gdx.math.Vector3(com.badlogic.gdx.math.Vector3.X);
-                com.badlogic.gdx.math.Vector3 yG = new com.badlogic.gdx.math.Vector3(com.badlogic.gdx.math.Vector3.Y);
-                com.badlogic.gdx.math.Vector3 zG = new com.badlogic.gdx.math.Vector3(com.badlogic.gdx.math.Vector3.Z);
-                q.transform(xG);
-                q.transform(yG);
-                q.transform(zG);
-                Log.d(this, "=== " + Log.fmt(xG) + "    " + Log.fmt(yG) + "    " + Log.fmt(zG));
-*/
+                Vector2 t = new Vector2(mTargetAzimuth, mTargetPitch);
+                Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
+//                Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
 
 
+                if (mControlMode == AppConst.Common.ControlMode.ORIENTATION) {
+                    // Zero delta means don't move.
+                    final float azimuthDelta = mCalibrating ? 0 : mTargetAzimuth - mCurrentAzimuth;
+                    final float pitchDelta = mCalibrating ? 0 : mTargetPitch - mCurrentPitch;
 
-/*
-                if (mTargetPosition != null) {
-                    Vector2 t = new Vector2(getHorizontalDegree(mTargetPosition), getVerticalDegree(mTargetPosition));
-                    Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
-                    Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
+                    Vector2 delta = new Vector2(azimuthDelta, pitchDelta);
+                    Log.d(HeadAnalyzerNode.this, String.format("+++ t: %s  c: %s  d: %s", Log.fmt(t), Log.fmt(c), Log.fmt(delta)));
+
+                    if (!mCalibrating) {
+                        moveHead(azimuthDelta, pitchDelta);
+                    }
                 }
-*/
             }
         }, 2000, 40);
 
@@ -113,6 +114,11 @@ public class HeadAnalyzerNode implements NodeMain {
 
         Subscriber<std_msgs.String> commandSubscriber = connectedNode.newSubscriber(AppConst.RoboHead.CONTROL_MODE_TOPIC, std_msgs.String._TYPE);
         commandSubscriber.addMessageListener(createCommandMessageListener());
+
+//        for (int i = 0; i <= 200; i++) {
+//            final short period = getRotatePeriod(i);
+//            Log.d(this, "####\t" + i + "\t" + period);
+//        }
     }
 
     @Override
@@ -164,24 +170,11 @@ public class HeadAnalyzerNode implements NodeMain {
 
                 Log.messageReceived(HeadAnalyzerNode.this, String.format("x=%.3f, y=%.3f", mTargetPosition.x, mTargetPosition.y));
 
-                final float targetAzimuth = getHorizontalDegree(mTargetPosition);
-                final float targetPitch = getVerticalDegree(mTargetPosition);
+                mTargetAzimuth = getHorizontalDegree(mTargetPosition);
+                mTargetPitch = getVerticalDegree(mTargetPosition);
 
                 if (mControlMode == AppConst.Common.ControlMode.TWO_JOYSTICKS) {
-                    positionHead(targetAzimuth, targetPitch);
-                } else if (mControlMode == AppConst.Common.ControlMode.ORIENTATION) {
-                    final float azimuthDelta = targetAzimuth - mCurrentAzimuth;
-                    final float pitchDelta = targetPitch - mCurrentPitch;
-
-
-/*
-                    Vector2 t = new Vector2(targetAzimuth, targetPitch);
-                    Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
-                    Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
-*/
-
-
-                    moveHead(azimuthDelta, pitchDelta);
+                    positionHead(mTargetAzimuth, mTargetPitch);
                 }
             }
         };
@@ -251,6 +244,8 @@ public class HeadAnalyzerNode implements NodeMain {
         stopCalibrationDelay.schedule(new TimerTask() {
             @Override
             public void run() {
+                mTargetAzimuth = mCurrentAzimuth;
+                mTargetPitch = mCurrentPitch;
                 mCalibrating = false;
             }
         }, 4000);
@@ -268,15 +263,44 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private void moveHead(final float horizontalDeltaDegree, final float verticalDeltaDegree) {
-
-        //todo #4
-
-        final short PERIOD = 800;
-        final short horizontalPeriod = horizontalDeltaDegree > 0 ? PERIOD : -PERIOD;
-        final short verticalPeriod = verticalDeltaDegree > 0 ? PERIOD : -PERIOD;
+        final short horizontalPeriod = getRotatePeriod(horizontalDeltaDegree);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
+        Log.d(this, "++ H ++ delta: " + MathUtils.round(horizontalDeltaDegree) + ", period: " + horizontalPeriod);
+
+        final short verticalPeriod = getRotatePeriod(verticalDeltaDegree);
         final String verticalCommand = MessageHelper.makeMessage(Rs.HeadVerticalRotationPeriod.ID, verticalPeriod);
+        Log.d(this, "++ V ++ delta: " + MathUtils.round(verticalDeltaDegree) + ", period: " + verticalPeriod);
+
         publishCommand(horizontalCommand);
         publishCommand(verticalCommand);
+    }
+
+    private static final float MIN_DEGREE = 2;
+    private static final float MAX_DEGREE = 180;
+//    private static final float MIN_PERIOD = 46080;
+//    private static final float MAX_PERIOD = 1280;
+
+    private static final float MIN_PERIOD = 22000;
+    private static final float MAX_PERIOD = 1280;
+    private static final float ELLIPSE_A = MAX_DEGREE - MIN_DEGREE;
+    private static final float ELLIPSE_A2 = ELLIPSE_A * ELLIPSE_A;
+    private static final float ELLIPSE_B = MIN_PERIOD - MAX_PERIOD;
+
+    private short getRotatePeriod(float deltaDegree) {
+        final float sign = Math.signum(deltaDegree);
+
+        deltaDegree = Math.abs(deltaDegree);
+        if (deltaDegree < MIN_DEGREE) {
+            return 0;
+        } else if (deltaDegree > MAX_DEGREE) {
+            deltaDegree = MAX_DEGREE;
+        }
+
+        final float delta = deltaDegree - MAX_DEGREE;
+
+        float result = -ELLIPSE_B / ELLIPSE_A * (float) Math.sqrt(ELLIPSE_A2 - delta * delta) + MIN_PERIOD;
+        result *= sign;
+        result /= 10;
+        return (short) MathUtils.round(result);
     }
 }

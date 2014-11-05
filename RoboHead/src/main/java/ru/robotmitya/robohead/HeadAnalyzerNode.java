@@ -45,6 +45,8 @@ public class HeadAnalyzerNode implements NodeMain {
 
     private volatile boolean mCalibrating = false;
 
+//    private PidController mPidController = new PidController(0, 0, 0);
+
     public HeadAnalyzerNode(Context context, int screenRotation) {
         mSensorOrientation = new SensorGyroscopeGravityOrientation(context, 0.98f);
         mSensorOrientation.setRotation(screenRotation);
@@ -119,6 +121,10 @@ public class HeadAnalyzerNode implements NodeMain {
 //            final short period = getRotatePeriod(i);
 //            Log.d(this, "####\t" + i + "\t" + period);
 //        }
+//        mPidController.setInputRange(0, 180);
+//        mPidController.setOutputRange(1 / 46080, 1 / 1280);
+//        mPidController.setPID(1, 0, 0);
+        //...
     }
 
     @Override
@@ -275,18 +281,17 @@ public class HeadAnalyzerNode implements NodeMain {
         publishCommand(verticalCommand);
     }
 
-    private static final float MIN_DEGREE = 2;
-    private static final float MAX_DEGREE = 180;
-//    private static final float MIN_PERIOD = 46080;
-//    private static final float MAX_PERIOD = 1280;
-
-    private static final float MIN_PERIOD = 22000;
-    private static final float MAX_PERIOD = 1280;
-    private static final float ELLIPSE_A = MAX_DEGREE - MIN_DEGREE;
-    private static final float ELLIPSE_A2 = ELLIPSE_A * ELLIPSE_A;
-    private static final float ELLIPSE_B = MIN_PERIOD - MAX_PERIOD;
-
     private short getRotatePeriod(float deltaDegree) {
+        final float MIN_DEGREE = 2;
+        final float MAX_DEGREE = 180;
+//        final float MIN_PERIOD = 46080;
+//        final float MAX_PERIOD = 1280;
+        final float MIN_PERIOD = 22000;
+        final float MAX_PERIOD = 1280;
+        final float ELLIPSE_A = MAX_DEGREE - MIN_DEGREE;
+        final float ELLIPSE_A2 = ELLIPSE_A * ELLIPSE_A;
+        final float ELLIPSE_B = MIN_PERIOD - MAX_PERIOD;
+
         final float sign = Math.signum(deltaDegree);
 
         deltaDegree = Math.abs(deltaDegree);

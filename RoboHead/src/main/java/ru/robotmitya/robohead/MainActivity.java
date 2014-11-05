@@ -130,6 +130,9 @@ public class MainActivity extends RosActivity {
 
         HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this));
         nodeMainExecutor.execute(headAnalyzerNode, nodeConfiguration);
+
+        PidNode pidNode = new PidNode();
+        nodeMainExecutor.execute(pidNode, nodeConfiguration);
     }
 
     private void initBluetoothBodyNode(final NodeMainExecutor nodeMainExecutor,

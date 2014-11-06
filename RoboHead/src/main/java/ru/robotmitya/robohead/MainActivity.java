@@ -3,7 +3,9 @@ package ru.robotmitya.robohead;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -27,6 +29,7 @@ public class MainActivity extends RosActivity {
     private EyePreviewView mEyePreviewView;
     private BluetoothAdapter mBluetoothAdapter;
     private HeadStateNode mHeadStateNode;
+    private PidNode mPidNode;
 
     private Handler mEyeNodeHandler = new Handler(new Handler.Callback() {
         @Override
@@ -68,6 +71,8 @@ public class MainActivity extends RosActivity {
         mEyePreviewView.setHandler(mEyeNodeHandler);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        mPidNode = new PidNode();
     }
 
     @Override
@@ -82,10 +87,14 @@ public class MainActivity extends RosActivity {
         } else {
             mEyePreviewView.stopVideoStreaming();
         }
+
+        registerReceiver(mPidNode, new IntentFilter("ru.robotmitya.robohead.PidNode.test"));
     }
 
     @Override
     protected void onStop() {
+        unregisterReceiver(mPidNode);
+
         mEyePreviewView.stopVideoStreaming();
         super.onStop();
     }
@@ -131,8 +140,7 @@ public class MainActivity extends RosActivity {
         HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this));
         nodeMainExecutor.execute(headAnalyzerNode, nodeConfiguration);
 
-        PidNode pidNode = new PidNode();
-        nodeMainExecutor.execute(pidNode, nodeConfiguration);
+        nodeMainExecutor.execute(mPidNode, nodeConfiguration);
     }
 
     private void initBluetoothBodyNode(final NodeMainExecutor nodeMainExecutor,

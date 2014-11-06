@@ -13,11 +13,22 @@ import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
 
 public class PidNode extends BroadcastReceiver implements NodeMain {
+    private boolean mStarted = false;
+
     private Publisher<std_msgs.String> mControlModePublisher;
     private Publisher<Twist> mHeadPublisher;
 
+    private HeadAnalyzerNode mHeadAnalyzerNode;
+    public void setHeadAnalyzerNode(final HeadAnalyzerNode headAnalyzerNode) {
+        mHeadAnalyzerNode = headAnalyzerNode;
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (!mStarted) {
+            return;
+        }
+
         // adb shell am broadcast -a ru.robotmitya.robohead.PidNode.test --es command "dsd" --ef x 0.123 --ef y 0.321
         float x = 0;
         float y = 0;
@@ -37,6 +48,26 @@ public class PidNode extends BroadcastReceiver implements NodeMain {
         if (intent.hasExtra("command")) {
             final String command = intent.getStringExtra("command");
             Log.d(this, "+++ action: " + intent.getAction() + "    command = " + command);
+        }
+
+        if (mHeadAnalyzerNode != null) {
+            if (intent.hasExtra("Kp")) {
+                final float kp = intent.getFloatExtra("Kp", 0);
+                Log.d(this, "+++ action: " + intent.getAction() + "    Kp = " + kp);
+                mHeadAnalyzerNode.setKp(kp);
+            }
+
+            if (intent.hasExtra("Ki")) {
+                final float ki = intent.getFloatExtra("Ki", 0);
+                Log.d(this, "+++ action: " + intent.getAction() + "    Ki = " + ki);
+                mHeadAnalyzerNode.setKi(ki);
+            }
+
+            if (intent.hasExtra("Kd")) {
+                final float kd = intent.getFloatExtra("Kd", 0);
+                Log.d(this, "+++ action: " + intent.getAction() + "    Kd = " + kd);
+                mHeadAnalyzerNode.setKd(kd);
+            }
         }
     }
 
@@ -83,10 +114,13 @@ public class PidNode extends BroadcastReceiver implements NodeMain {
 //                }
 //            }
 //        });
+
+        mStarted = true;
     }
 
     @Override
     public void onShutdown(Node node) {
+        mStarted = false;
     }
 
     @Override
@@ -98,6 +132,10 @@ public class PidNode extends BroadcastReceiver implements NodeMain {
     }
 
     private void publishControlModeCommand(final String command) {
+        if (!mStarted) {
+            return;
+        }
+
         std_msgs.String message = mControlModePublisher.newMessage();
         message.setData(command);
         mControlModePublisher.publish(message);
@@ -105,6 +143,10 @@ public class PidNode extends BroadcastReceiver implements NodeMain {
     }
 
     private void publishHeadMessage(final float x, final float y) {
+        if (!mStarted) {
+            return;
+        }
+
         try {
             Twist message = mHeadPublisher.newMessage();
             message.getAngular().setX(0);

@@ -140,6 +140,7 @@ public class MainActivity extends RosActivity {
         HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this));
         nodeMainExecutor.execute(headAnalyzerNode, nodeConfiguration);
 
+        mPidNode.setHeadAnalyzerNode(headAnalyzerNode);
         nodeMainExecutor.execute(mPidNode, nodeConfiguration);
     }
 

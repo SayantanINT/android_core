@@ -45,6 +45,10 @@ public class HeadAnalyzerNode implements NodeMain {
 
     private volatile boolean mCalibrating = false;
 
+    private volatile float mKp = 0;
+    private volatile float mKi = 0;
+    private volatile float mKd = 0;
+
 //    private PidController mPidController = new PidController(0, 0, 0);
 
     public HeadAnalyzerNode(Context context, int screenRotation) {
@@ -307,5 +311,17 @@ public class HeadAnalyzerNode implements NodeMain {
         result *= sign;
         result /= 10;
         return (short) MathUtils.round(result);
+    }
+
+    public void setKp(final float kp) {
+        mKp = kp;
+    }
+
+    public void setKi(final float ki) {
+        mKi = ki;
+    }
+
+    public void setKd(final float kd) {
+        mKd = kd;
     }
 }

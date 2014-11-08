@@ -204,6 +204,7 @@ public class BluetoothBodyNode implements NodeMain {
 
     private void startVoltageRequests() {
         final short period = 0x012c; // 300 centiseconds = 3 seconds
+        //noinspection PointlessBitwiseExpression
         sendToBody(MessageHelper.makeMessage(Rs.BatteryRequest.ID, (short)(Rs.BatteryRequest.ROBOT_BATTERY_VOLTAGE | period)));
         sendToBody(MessageHelper.makeMessage(Rs.BatteryRequest.ID, (short)(Rs.BatteryRequest.ROBOT_POWER_SUPPLY_VOLTAGE | period)));
     }
@@ -211,5 +212,10 @@ public class BluetoothBodyNode implements NodeMain {
     private void stopVoltageRequests() {
         sendToBody(MessageHelper.makeMessage(Rs.BatteryRequest.ID, Rs.BatteryRequest.ROBOT_BATTERY_VOLTAGE));
         sendToBody(MessageHelper.makeMessage(Rs.BatteryRequest.ID, Rs.BatteryRequest.ROBOT_POWER_SUPPLY_VOLTAGE));
+    }
+
+    //todo #18 This method is a temporary solution. I should delete it after fixing #18.
+    public void sendViaBluetooth(String message) {
+        sendToBody(message);
     }
 }

@@ -30,6 +30,8 @@ public class HeadAnalyzerNode implements NodeMain {
 
     private Context mContext;
 
+    private BluetoothBodyNode mBluetoothBodyNode; //todo #18 - delete this after fixing #18.
+
     private Publisher<std_msgs.String> mBodyPublisher;
 
     private final Vector2 mPosition = new Vector2();
@@ -56,13 +58,15 @@ public class HeadAnalyzerNode implements NodeMain {
     private static final String HORIZONTAL_PID_KI_OPTION_NAME = "Ki";
     private static final String HORIZONTAL_PID_KD_OPTION_NAME = "Kd";
 
-    public HeadAnalyzerNode(Context context, int screenRotation) {
+    public HeadAnalyzerNode(Context context, int screenRotation, BluetoothBodyNode bluetoothBodyNode) {
         mContext = context;
         mSensorOrientation = new SensorGyroscopeGravityOrientation(context, 0.98f);
         mSensorOrientation.setRotation(screenRotation);
         mSensorOrientation.setCalibrationEnabled(true);
 
         mHeadAnalyzerTuner.setHeadAnalyzerNode(this);
+
+        mBluetoothBodyNode = bluetoothBodyNode; //todo #18 (delete this after fix)
     }
 
     @Override
@@ -234,10 +238,16 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private void publishCommand(final String command) {
+/*
         std_msgs.String message = mBodyPublisher.newMessage();
         message.setData(command);
         mBodyPublisher.publish(message);
         Log.messagePublished(this, mBodyPublisher.getTopicName().toString(), command);
+*/
+        //todo #18 - Loss of ROS messages. So this is my _temporary_ solution:
+        if (mBluetoothBodyNode != null) {
+            mBluetoothBodyNode.sendViaBluetooth(command);
+        }
     }
 
     private float getHorizontalDegree(final Vector2 pos) {
@@ -252,7 +262,12 @@ public class HeadAnalyzerNode implements NodeMain {
         return ((1 - pos.y) * ((max - min) / 2)) + min;
     }
 
-    private void calibrate() {
+    public void calibrate() {
+        if (mCalibrating) {
+            return;
+        }
+
+        Log.d(this, "Start calibrate");
         mCalibrating = true;
 
         positionHead(RoboState.getHeadHorizontalZeroDegree(), RoboState.getHeadVerticalZeroDegree());
@@ -272,6 +287,7 @@ public class HeadAnalyzerNode implements NodeMain {
                 mTargetAzimuth = mCurrentAzimuth;
                 mTargetPitch = mCurrentPitch;
                 mCalibrating = false;
+                Log.d(HeadAnalyzerNode.this, "Stop calibrate");
             }
         }, 4000);
     }
@@ -374,5 +390,16 @@ public class HeadAnalyzerNode implements NodeMain {
     private float loadFloatOption(final String preferencesName, final String optionName, final float defaultValue) {
         SharedPreferences settings = mContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
         return settings.getFloat(optionName, defaultValue);
+    }
+
+    public void setTarget(final float azimuthDegree, final float pitchDegree) {
+        mTargetAzimuth = azimuthDegree;
+        mTargetPitch = pitchDegree;
+        Log.d(this, String.format("Target azimuth: %f  Target pitch: %f", mTargetAzimuth, mTargetPitch));
+    }
+
+    public void setHead(final int azimuthDegree, final int pitchDegree) {
+        positionHead(azimuthDegree, pitchDegree);
+        Log.d(this, String.format("Head positioned to azimuth: %d  pitch: %d", azimuthDegree, pitchDegree));
     }
 }

@@ -27,6 +27,7 @@ public class MainActivity extends RosActivity {
     private EyePreviewView mEyePreviewView;
     private BluetoothAdapter mBluetoothAdapter;
     private HeadStateNode mHeadStateNode;
+    private BluetoothBodyNode mBluetoothBodyNode; //todo #18 - delete this after fixing #18.
 
     private Handler mEyeNodeHandler = new Handler(new Handler.Callback() {
         @Override
@@ -128,7 +129,7 @@ public class MainActivity extends RosActivity {
         DriveAnalyzerNode driveAnalyzerNode = new DriveAnalyzerNode();
         nodeMainExecutor.execute(driveAnalyzerNode, nodeConfiguration);
 
-        HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this));
+        HeadAnalyzerNode headAnalyzerNode = new HeadAnalyzerNode(this, SensorOrientation.getRotation(this), mBluetoothBodyNode);
         nodeMainExecutor.execute(headAnalyzerNode, nodeConfiguration);
     }
 
@@ -159,6 +160,7 @@ public class MainActivity extends RosActivity {
         } else {
             BluetoothBodyNode bluetoothBodyNode = new BluetoothBodyNode(this, mBluetoothAdapter);
             nodeMainExecutor.execute(bluetoothBodyNode, nodeConfiguration);
+            mBluetoothBodyNode = bluetoothBodyNode;
         }
     }
 }

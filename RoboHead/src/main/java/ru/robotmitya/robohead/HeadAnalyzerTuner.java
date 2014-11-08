@@ -76,15 +76,15 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
     public void onReceive(Context context, android.content.Intent intent) {
         final String action = intent.getAction();
         if (action.equals(Intent.Calibrate.ACTION)) {
-            Log.d(this, "+++ " + action);
+            mHeadAnalyzerNode.calibrate();
         } else if (action.equals(Intent.PositionHead.ACTION)) {
-            final int h = intent.getIntExtra(Intent.PositionHead.EXTRA_HORIZONTAL, 90);
-            final int v = intent.getIntExtra(Intent.PositionHead.EXTRA_VERTICAL, 45);
-            Log.d(this, "+++ " + action + "  h: " + h + "  v: " + v);
+            final int azimuthDegree = intent.getIntExtra(Intent.PositionHead.EXTRA_HORIZONTAL, 90);
+            final int pitchDegree = intent.getIntExtra(Intent.PositionHead.EXTRA_VERTICAL, 45);
+            mHeadAnalyzerNode.setHead(azimuthDegree, pitchDegree);
         } else if (action.equals(Intent.SetTarget.ACTION)) {
-            final float h = intent.getFloatExtra(Intent.SetTarget.EXTRA_HORIZONTAL, 90);
-            final float v = intent.getFloatExtra(Intent.SetTarget.EXTRA_VERTICAL, 45);
-            Log.d(this, "+++ " + action + "  h: " + h + "  v: " + v);
+            final float azimuthDegree = intent.getFloatExtra(Intent.SetTarget.EXTRA_HORIZONTAL, 90);
+            final float pitchDegree = intent.getFloatExtra(Intent.SetTarget.EXTRA_VERTICAL, 45);
+            mHeadAnalyzerNode.setTarget(azimuthDegree, pitchDegree);
         } else if (action.equals(Intent.ActivatePid.ACTION)) {
             final boolean enabled = intent.getBooleanExtra(Intent.ActivatePid.EXTRA_ENABLED, false);
             Log.d(this, "+++ " + action + "  e: " + enabled);

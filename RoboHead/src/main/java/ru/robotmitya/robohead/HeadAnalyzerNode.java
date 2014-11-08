@@ -411,6 +411,9 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     public void activatePidTest(final boolean enabled) {
+        if (enabled) {
+            mControlMode = AppConst.Common.ControlMode.ORIENTATION;
+        }
         mHorizontalPid.setEnabled(enabled);
         Log.d(this, "PID test " + (enabled ? "started" : "stopped"));
     }

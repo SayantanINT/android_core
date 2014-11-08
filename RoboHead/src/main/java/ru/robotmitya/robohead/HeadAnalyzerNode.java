@@ -142,7 +142,7 @@ public class HeadAnalyzerNode implements NodeMain {
         mHorizontalPid.setKi(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, 0));
         mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, 0));
         mHorizontalPid.setInputRange(0, 180);
-        mHorizontalPid.setOutputRange(1 / 46080, 1 / 1280);
+        mHorizontalPid.setOutputRange(1.0 / 46080.0, 1.0 / 1280.0);
         Log.d(this, String.format("Kp = %f  Ki = %f  Kd = %f", mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
 
         mHeadAnalyzerTuner.start(mContext);
@@ -317,7 +317,8 @@ public class HeadAnalyzerNode implements NodeMain {
         publishCommand(verticalCommand);
 */
         mHorizontalPid.setInput(horizontalDeltaDegree);
-        final short horizontalPeriod = (short) Math.round(mHorizontalPid.performPid());
+        final double speed = mHorizontalPid.performPid();
+        final short horizontalPeriod = (short) Math.round(1.0 / speed);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
     }

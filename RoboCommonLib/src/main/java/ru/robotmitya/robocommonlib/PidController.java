@@ -4,11 +4,11 @@ package ru.robotmitya.robocommonlib;
  *
  * Created by dmitrydzz on 05.11.14.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class PidController {
-
-    private double mP;			// factor for "proportional" control
-    private double mI;			// factor for "integral" control
-    private double mD;			// factor for "derivative" control
+    private double mKp;			// factor for "proportional" control
+    private double mKi;			// factor for "integral" control
+    private double mKd;			// factor for "derivative" control
     private double mInput;             // sensor input for pid controller
     private double mMaximumOutput = 1.0;	// |maximum output|
     private double mMinimumOutput = -1.0;	// |minimum output|
@@ -25,18 +25,18 @@ public class PidController {
 
     /**
      * Allocate a PID object with the given constants for P, I, D
-     * @param Kp the proportional coefficient
-     * @param Ki the integral coefficient
-     * @param Kd the derivative coefficient
+     * @param kp the proportional coefficient
+     * @param ki the integral coefficient
+     * @param kd the derivative coefficient
      */
-    public PidController(double Kp, double Ki, double Kd) {
-
-        mP = Kp;
-        mI = Ki;
-        mD = Kd;
-
+    public PidController(double kp, double ki, double kd) {
+        mKp = kp;
+        mKi = ki;
+        mKd = kd;
     }
 
+    public PidController() {
+    }
 
     /**
      * Read the input, calculate the output accordingly, and write to the output.
@@ -44,7 +44,6 @@ public class PidController {
      * and is created during initialization.
      */
     private void calculate() {
-
         // If enabled then proceed into controller calculations
         if (mEnabled) {
 
@@ -69,13 +68,13 @@ public class PidController {
 
             /* Integrate the errors as long as the upcoming integrator does
                not exceed the minimum and maximum output thresholds */
-            if (((mTotalError + mError) * mI < mMaximumOutput) &&
-                    ((mTotalError + mError) * mI > mMinimumOutput)) {
+            if (((mTotalError + mError) * mKi < mMaximumOutput) &&
+                    ((mTotalError + mError) * mKi > mMinimumOutput)) {
                 mTotalError += mError;
             }
 
             // Perform the primary PID calculation
-            mResult = (mP * mError + mI * mTotalError + mD * (mError - mPrevError));
+            mResult = (mKp * mError + mKi * mTotalError + mKd * (mError - mPrevError));
 
             // Set the current error to the previous error for the next cycle
             mPrevError = mError;
@@ -92,39 +91,87 @@ public class PidController {
     /**
      * Set the PID Controller gain parameters.
      * Set the proportional, integral, and differential coefficients.
-     * @param p Proportional coefficient
-     * @param i Integral coefficient
-     * @param d Differential coefficient
+     * @param kp Proportional coefficient
+     * @param ki Integral coefficient
+     * @param kd Differential coefficient
      */
     @SuppressWarnings("UnusedDeclaration")
-    public void setPID(double p, double i, double d) {
-        mP = p;
-        mI = i;
-        mD = d;
+    public void setPid(double kp, double ki, double kd) {
+        mKp = kp;
+        mKi = ki;
+        mKd = kd;
     }
 
     /**
      * Get the Proportional coefficient
      * @return proportional coefficient
      */
-    public double getP() {
-        return mP;
+    public double getKp() {
+        return mKp;
     }
 
     /**
      * Get the Integral coefficient
      * @return integral coefficient
      */
-    public double getI() {
-        return mI;
+    public double getKi() {
+        return mKi;
     }
 
     /**
      * Get the Differential coefficient
      * @return differential coefficient
      */
-    public double getD() {
-        return mD;
+    public double getKd() {
+        return mKd;
+    }
+
+    /**
+     * Set the Proportional coefficient
+     * @param kp proportional coefficient
+     */
+    public void setKp(double kp) {
+        mKp = kp;
+    }
+
+    /**
+     * Set the Integral coefficient
+     * @param ki integral coefficient
+     */
+    public void setKi(double ki) {
+        mKi = ki;
+    }
+
+    /**
+     * Set the Differential coefficient
+     * @param kd differential coefficient
+     */
+    public void setKd(double kd) {
+        mKd = kd;
+    }
+
+    /**
+     * Change the Proportional coefficient
+     * @param deltaKp proportional coefficient delta
+     */
+    public void addKp(double deltaKp) {
+        mKp += deltaKp;
+    }
+
+    /**
+     * Change the Integral coefficient
+     * @param deltaKi integral coefficient delta
+     */
+    public void addKi(double deltaKi) {
+        mKi += deltaKi;
+    }
+
+    /**
+     * Change the Differential coefficient
+     * @param deltaKd differential coefficient delta
+     */
+    public void addKd(double deltaKd) {
+        mKd += deltaKd;
     }
 
     /**
@@ -132,7 +179,7 @@ public class PidController {
      * This is always centered on zero and constrained the the max and min outs
      * @return the latest calculated output
      */
-    public double performPID() {
+    public double performPid() {
         calculate();
         return mResult;
     }
@@ -238,6 +285,10 @@ public class PidController {
      */
     public void disable() {
         mEnabled = false;
+    }
+
+    public void setEnabled(boolean enabled) {
+        mEnabled = enabled;
     }
 
     /**

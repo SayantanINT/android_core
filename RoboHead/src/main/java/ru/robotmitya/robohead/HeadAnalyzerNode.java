@@ -1,6 +1,7 @@
 package ru.robotmitya.robohead;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
@@ -27,6 +28,8 @@ import java.util.TimerTask;
 public class HeadAnalyzerNode implements NodeMain {
     private static final float SMOOTH_FACTOR = 0.9f;
 
+    private Context mContext;
+
     private Publisher<std_msgs.String> mBodyPublisher;
 
     private final Vector2 mPosition = new Vector2();
@@ -45,16 +48,21 @@ public class HeadAnalyzerNode implements NodeMain {
 
     private volatile boolean mCalibrating = false;
 
-    private volatile float mKp = 0;
-    private volatile float mKi = 0;
-    private volatile float mKd = 0;
+    private final HeadAnalyzerTuner mHeadAnalyzerTuner = new HeadAnalyzerTuner();
 
-//    private PidController mPidController = new PidController(0, 0, 0);
+    private PidController mHorizontalPid = new PidController();
+    private static final String HORIZONTAL_PID_PREFS_NAME = "HorizontalPid";
+    private static final String HORIZONTAL_PID_KP_OPTION_NAME = "Kp";
+    private static final String HORIZONTAL_PID_KI_OPTION_NAME = "Ki";
+    private static final String HORIZONTAL_PID_KD_OPTION_NAME = "Kd";
 
     public HeadAnalyzerNode(Context context, int screenRotation) {
+        mContext = context;
         mSensorOrientation = new SensorGyroscopeGravityOrientation(context, 0.98f);
         mSensorOrientation.setRotation(screenRotation);
         mSensorOrientation.setCalibrationEnabled(true);
+
+        mHeadAnalyzerTuner.setHeadAnalyzerNode(this);
     }
 
     @Override
@@ -125,14 +133,21 @@ public class HeadAnalyzerNode implements NodeMain {
 //            final short period = getRotatePeriod(i);
 //            Log.d(this, "####\t" + i + "\t" + period);
 //        }
-//        mPidController.setInputRange(0, 180);
-//        mPidController.setOutputRange(1 / 46080, 1 / 1280);
-//        mPidController.setPID(1, 0, 0);
-        //...
+
+        mHorizontalPid.setKp(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, 0));
+        mHorizontalPid.setKi(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, 0));
+        mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, 0));
+        mHorizontalPid.setInputRange(0, 180);
+        mHorizontalPid.setOutputRange(1 / 46080, 1 / 1280);
+        Log.d(this, String.format("Kp = %f  Ki = %f  Kd = %f", mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
+
+        mHeadAnalyzerTuner.start(mContext);
     }
 
     @Override
     public void onShutdown(Node node) {
+        mHeadAnalyzerTuner.stop(mContext);
+
         mSensorOrientation.stop();
 
         mPublisherTimer.cancel();
@@ -313,15 +328,51 @@ public class HeadAnalyzerNode implements NodeMain {
         return (short) MathUtils.round(result);
     }
 
-    public void setKp(final float kp) {
-        mKp = kp;
+    public void setHorizontalKp(final float kp) {
+        mHorizontalPid.setKp(kp);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
+        Log.d(this, String.format("Kp = %f", mHorizontalPid.getKp()));
     }
 
-    public void setKi(final float ki) {
-        mKi = ki;
+    public void setHorizontalKi(final float ki) {
+        mHorizontalPid.setKi(ki);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
+        Log.d(this, String.format("Ki = %f", mHorizontalPid.getKi()));
     }
 
-    public void setKd(final float kd) {
-        mKd = kd;
+    public void setHorizontalKd(final float kd) {
+        mHorizontalPid.setKd(kd);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
+        Log.d(this, String.format("Kd = %f", mHorizontalPid.getKd()));
+    }
+
+    public void addHorizontalKp(final float deltaKp) {
+        mHorizontalPid.addKp(deltaKp);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
+        Log.d(this, String.format("Kp = %f", mHorizontalPid.getKp()));
+    }
+
+    public void addHorizontalKi(final float deltaKi) {
+        mHorizontalPid.addKi(deltaKi);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
+        Log.d(this, String.format("Ki = %f", mHorizontalPid.getKi()));
+    }
+
+    public void addHorizontalKd(final float deltaKd) {
+        mHorizontalPid.addKd(deltaKd);
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
+        Log.d(this, String.format("Kd = %f", mHorizontalPid.getKd()));
+    }
+
+    private void saveFloatOption(final String preferencesName, final String optionName, final float value) {
+        SharedPreferences settings = mContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putFloat(optionName, value);
+        editor.apply();
+    }
+
+    private float loadFloatOption(final String preferencesName, final String optionName, final float defaultValue) {
+        SharedPreferences settings = mContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+        return settings.getFloat(optionName, defaultValue);
     }
 }

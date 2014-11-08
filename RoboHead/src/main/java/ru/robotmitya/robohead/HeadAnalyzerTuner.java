@@ -3,7 +3,6 @@ package ru.robotmitya.robohead;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import ru.robotmitya.robocommonlib.Log;
 
 /**
  *
@@ -11,7 +10,7 @@ import ru.robotmitya.robocommonlib.Log;
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.Calibrate
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.PositionHead --ei h 19 --ei v 74
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetTarget --ef h 19.74 --ef v 10.01
- *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.ActivatePid --ez e true
+ *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.ActivatePidTest --ez e true
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetPidFactors --ef Kp 197.4 --ef Ki 19.74 --ef Kd 1.974
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetPidFactors --ef addKp 0.1 --ef addKi 0.2 --ef addKd 0.3
  *
@@ -36,8 +35,8 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
             public static final String EXTRA_VERTICAL = "v";
         }
 
-        public static class ActivatePid {
-            public static final String ACTION = "ru.robotmitya.robohead.HeadAnalyzerTuner.ActivatePid";
+        public static class ActivatePidTest {
+            public static final String ACTION = "ru.robotmitya.robohead.HeadAnalyzerTuner.ActivatePidTest";
             public static final String EXTRA_ENABLED = "e";
         }
 
@@ -63,7 +62,7 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
         intentFilter.addAction(Intent.Calibrate.ACTION);
         intentFilter.addAction(Intent.PositionHead.ACTION);
         intentFilter.addAction(Intent.SetTarget.ACTION);
-        intentFilter.addAction(Intent.ActivatePid.ACTION);
+        intentFilter.addAction(Intent.ActivatePidTest.ACTION);
         intentFilter.addAction(Intent.SetPidFactors.ACTION);
         context.registerReceiver(this, intentFilter);
     }
@@ -85,9 +84,9 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
             final float azimuthDegree = intent.getFloatExtra(Intent.SetTarget.EXTRA_HORIZONTAL, 90);
             final float pitchDegree = intent.getFloatExtra(Intent.SetTarget.EXTRA_VERTICAL, 45);
             mHeadAnalyzerNode.setTarget(azimuthDegree, pitchDegree);
-        } else if (action.equals(Intent.ActivatePid.ACTION)) {
-            final boolean enabled = intent.getBooleanExtra(Intent.ActivatePid.EXTRA_ENABLED, false);
-            Log.d(this, "+++ " + action + "  e: " + enabled);
+        } else if (action.equals(Intent.ActivatePidTest.ACTION)) {
+            final boolean enabled = intent.getBooleanExtra(Intent.ActivatePidTest.EXTRA_ENABLED, false);
+            mHeadAnalyzerNode.activatePidTest(enabled);
         } else if (action.equals(Intent.SetPidFactors.ACTION)) {
             if (intent.hasExtra(Intent.SetPidFactors.EXTRA_KP)) {
                 final float kp = intent.getFloatExtra(Intent.SetPidFactors.EXTRA_KP, 0);

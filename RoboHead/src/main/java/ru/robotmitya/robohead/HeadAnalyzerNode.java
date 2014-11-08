@@ -304,6 +304,7 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private void moveHead(final float horizontalDeltaDegree, final float verticalDeltaDegree) {
+/*
         final short horizontalPeriod = getRotatePeriod(horizontalDeltaDegree);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         Log.d(this, "++ H ++ delta: " + MathUtils.round(horizontalDeltaDegree) + ", period: " + horizontalPeriod);
@@ -314,6 +315,11 @@ public class HeadAnalyzerNode implements NodeMain {
 
         publishCommand(horizontalCommand);
         publishCommand(verticalCommand);
+*/
+        mHorizontalPid.setInput(horizontalDeltaDegree);
+        final short horizontalPeriod = (short) Math.round(mHorizontalPid.performPid());
+        final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
+        publishCommand(horizontalCommand);
     }
 
     private short getRotatePeriod(float deltaDegree) {
@@ -394,6 +400,7 @@ public class HeadAnalyzerNode implements NodeMain {
 
     public void setTarget(final float azimuthDegree, final float pitchDegree) {
         mTargetAzimuth = azimuthDegree;
+        mHorizontalPid.setTarget(mTargetAzimuth);
         mTargetPitch = pitchDegree;
         Log.d(this, String.format("Target azimuth: %f  Target pitch: %f", mTargetAzimuth, mTargetPitch));
     }
@@ -401,5 +408,10 @@ public class HeadAnalyzerNode implements NodeMain {
     public void setHead(final int azimuthDegree, final int pitchDegree) {
         positionHead(azimuthDegree, pitchDegree);
         Log.d(this, String.format("Head positioned to azimuth: %d  pitch: %d", azimuthDegree, pitchDegree));
+    }
+
+    public void activatePidTest(final boolean enabled) {
+        mHorizontalPid.setEnabled(enabled);
+        Log.d(this, "PID test " + (enabled ? "started" : "stopped"));
     }
 }

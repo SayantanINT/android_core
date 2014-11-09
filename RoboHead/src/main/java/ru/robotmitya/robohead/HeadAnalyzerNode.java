@@ -27,6 +27,7 @@ import java.util.TimerTask;
  */
 public class HeadAnalyzerNode implements NodeMain {
     private static final float SMOOTH_FACTOR = 0.9f;
+    private static final double NICETY_FACTOR = 1000000f;
 
     private Context mContext;
 
@@ -142,7 +143,9 @@ public class HeadAnalyzerNode implements NodeMain {
         mHorizontalPid.setKi(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, 0));
         mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, 0));
         mHorizontalPid.setInputRange(0, 180);
-        mHorizontalPid.setOutputRange(1.0 / 46080.0, 1.0 / 1280.0);
+        mHorizontalPid.setOutputRange(//Transforming period to speed. NICETY_FACTOR to increase accuracy and to make factors shorter.
+                NICETY_FACTOR * 1.0 / 46080.0,
+                NICETY_FACTOR * 1.0 / 1280.0);
         Log.d(this, String.format("Kp = %f  Ki = %f  Kd = %f", mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
 
         mHeadAnalyzerTuner.start(mContext);
@@ -318,7 +321,7 @@ public class HeadAnalyzerNode implements NodeMain {
 */
         mHorizontalPid.setInput(horizontalDeltaDegree);
         final double speed = mHorizontalPid.performPid();
-        final short horizontalPeriod = (short) Math.round(1.0 / speed);
+        final short horizontalPeriod = (short) Math.round(NICETY_FACTOR / speed);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
     }

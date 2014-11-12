@@ -18,6 +18,7 @@ import geometry_msgs.Vector3;
 import ru.robotmitya.robocommonlib.*;
 
 import java.lang.String;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -75,6 +76,8 @@ public class HeadAnalyzerNode implements NodeMain {
         return GraphName.of(AppConst.RoboHead.HEAD_ANALYZER_NODE);
     }
 
+    private long mTimeTemp = 0;
+
     @Override
     public void onStart(ConnectedNode connectedNode) {
         mSensorOrientation.start();
@@ -123,8 +126,11 @@ public class HeadAnalyzerNode implements NodeMain {
                         moveHead(azimuthDelta, pitchDelta);
                     }
                 }
+
+                testAdbPlot(mTimeTemp, mTargetAzimuth, mCurrentAzimuth, mTargetAzimuth - mCurrentAzimuth);
+                mTimeTemp += 40;
             }
-        }, 2000, 40);
+        }, 2000, 40*100); //todo #4
 
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
 
@@ -324,6 +330,11 @@ public class HeadAnalyzerNode implements NodeMain {
         final short horizontalPeriod = (short) Math.round(NICETY_FACTOR / speed);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
+    }
+
+    private void testAdbPlot(long time, float targetAzimuth, float currentAzimuth, float deltaAzimuth) {
+        Log.d(this, String.format("+=+=+\t%d\t%f\t%f\t%f", time, targetAzimuth, currentAzimuth, deltaAzimuth));
+        Log.d(this, String.format("=====\t%d\t%f\t%f\t%f", time, targetAzimuth, currentAzimuth, deltaAzimuth));
     }
 
     private short getRotatePeriod(float deltaDegree) {

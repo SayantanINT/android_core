@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.ImageView;
 import org.ros.android.BitmapFromCompressedImage;
 import org.ros.android.view.RosImageView;
 
@@ -13,7 +14,8 @@ import ru.robotmitya.robocommonlib.AppConst;
 
 public class VideoFragment extends Fragment {
 
-    private RosImageView<sensor_msgs.CompressedImage> mImageView;
+    private MasterImageView<sensor_msgs.CompressedImage> mMasterImageView;
+    private ImageView mSecondaryView;
 
     public VideoFragment() {
         super();
@@ -26,15 +28,18 @@ public class VideoFragment extends Fragment {
             return null;
         }
 
-        mImageView = (RosImageView<sensor_msgs.CompressedImage>) result.findViewById(R.id.imageViewVideo);
-        mImageView.setTopicName(AppConst.RoboBoard.CAMERA_TOPIC);
-        mImageView.setMessageType(sensor_msgs.CompressedImage._TYPE);
-        mImageView.setMessageToBitmapCallable(new BitmapFromCompressedImage());
+        mSecondaryView = (ImageView) result.findViewById(R.id.imageSecondaryViewVideo);
+
+        mMasterImageView = (MasterImageView<sensor_msgs.CompressedImage>) result.findViewById(R.id.imageViewVideo);
+        mMasterImageView.setTopicName(AppConst.RoboBoard.CAMERA_TOPIC);
+        mMasterImageView.setMessageType(sensor_msgs.CompressedImage._TYPE);
+        mMasterImageView.setMessageToBitmapCallable(new BitmapFromCompressedImage());
+        mMasterImageView.setSecondaryImageView(mSecondaryView);
 
         return result;
     }
 
     public RosImageView<sensor_msgs.CompressedImage> getImageView() {
-        return mImageView;
+        return mMasterImageView;
     }
 }

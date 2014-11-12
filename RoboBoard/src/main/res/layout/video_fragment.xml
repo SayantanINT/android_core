@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-    <org.ros.android.view.RosImageView
+    <ru.robotmitya.roboboard.MasterImageView
         android:id="@+id/imageViewVideo"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:layout_weight="1"
         android:background="@color/board_background_color"
         />
 
-</RelativeLayout>
+    <ImageView
+        android:id="@+id/imageSecondaryViewVideo"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:background="@color/board_background_color"
+        />
+
+</LinearLayout>

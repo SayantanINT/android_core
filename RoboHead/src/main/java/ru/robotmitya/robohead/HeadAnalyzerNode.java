@@ -18,7 +18,6 @@ import geometry_msgs.Vector3;
 import ru.robotmitya.robocommonlib.*;
 
 import java.lang.String;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -28,7 +27,7 @@ import java.util.TimerTask;
  */
 public class HeadAnalyzerNode implements NodeMain {
     private static final float SMOOTH_FACTOR = 0.9f;
-    private static final double NICETY_FACTOR = 1000000f;
+//    private static final double NICETY_FACTOR = 1000000f;
 
     private Context mContext;
 
@@ -116,8 +115,9 @@ public class HeadAnalyzerNode implements NodeMain {
 //                Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
 //                Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
 
-
-                if (mControlMode == AppConst.Common.ControlMode.ORIENTATION) {
+                final boolean isPidEnabled = mControlMode == AppConst.Common.ControlMode.ORIENTATION;
+                mHorizontalPid.setEnabled(isPidEnabled);
+                if (isPidEnabled) {
                     // Zero delta means don't move.
                     final float azimuthDelta = mCalibrating ? 0 : mTargetAzimuth - mCurrentAzimuth;
                     final float pitchDelta = mCalibrating ? 0 : mTargetPitch - mCurrentPitch;
@@ -155,8 +155,9 @@ public class HeadAnalyzerNode implements NodeMain {
         mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, 0));
         mHorizontalPid.setInputRange(0, 180);
         mHorizontalPid.setOutputRange(//Transforming period to speed. NICETY_FACTOR to increase accuracy and to make factors shorter.
-                NICETY_FACTOR * 1.0 / 46080.0,
-                NICETY_FACTOR * 1.0 / 1280.0);
+//                1.0 / 4608.0,
+                -1.0 / 128.0,
+                1.0 / 128.0);
         Log.d(this, String.format("Kp = %f  Ki = %f  Kd = %f", mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
 
         mHeadAnalyzerTuner.start(mContext);
@@ -170,6 +171,8 @@ public class HeadAnalyzerNode implements NodeMain {
 
         mPublisherTimer.cancel();
         mPublisherTimer.purge();
+
+        stopMoving();
     }
 
     @Override
@@ -215,6 +218,8 @@ public class HeadAnalyzerNode implements NodeMain {
 
                 mTargetAzimuth = getHorizontalDegree(mTargetPosition);
                 mTargetPitch = getVerticalDegree(mTargetPosition);
+
+                Log.d(this, "+++ p.x = " + mTargetPosition.x + "   mTargetAzimuth = " + mTargetAzimuth); //todo #4
 
                 if (mControlMode == AppConst.Common.ControlMode.TWO_JOYSTICKS) {
                     positionHead(mTargetAzimuth, mTargetPitch);
@@ -284,6 +289,7 @@ public class HeadAnalyzerNode implements NodeMain {
         Log.d(this, "Start calibrate");
         mCalibrating = true;
 
+        stopMoving();
         positionHead(RoboState.getHeadHorizontalZeroDegree(), SettingsFragment.getStraightAheadAngle());
 
         Timer waitHeadServos = new Timer();
@@ -340,9 +346,17 @@ public class HeadAnalyzerNode implements NodeMain {
 */
         mHorizontalPid.setInput(horizontalDeltaDegree);
         final double speed = mHorizontalPid.performPid();
-        final short horizontalPeriod = (short) Math.round(NICETY_FACTOR / speed);
+        final short horizontalPeriod = Math.abs(speed) < MathUtils.FLOAT_ROUNDING_ERROR ? 0 : (short) Math.round(1.0 / speed);
+        Log.d(this, "horizontalPeriod: " + horizontalPeriod);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
+    }
+
+    private void stopMoving() {
+        final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, (short) 0);
+        publishCommand(horizontalCommand);
+        final String verticalCommand = MessageHelper.makeMessage(Rs.HeadVerticalRotationPeriod.ID, (short) 0);
+        publishCommand(verticalCommand);
     }
 
     private short getRotatePeriod(float deltaDegree) {

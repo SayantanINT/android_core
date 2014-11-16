@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import ru.robotmitya.robocommonlib.AppConst;
 import ru.robotmitya.robocommonlib.Log;
+import ru.robotmitya.robocommonlib.RoboState;
 import ru.robotmitya.robocommonlib.SettingsHelper;
 
 /**
@@ -48,6 +49,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private static String mFrontCameraMode;
     private static String mBackCameraMode;
     private static boolean mDriveReverse;
+    private static short mStraightAheadAngle;
 
     /**
      * Robot's Bluetooth adapter MAC-address.
@@ -61,6 +63,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private ListPreference mListPreferenceFrontCameraMode;
     private ListPreference mListPreferenceBackCameraMode;
     private CheckBoxPreference mCheckBoxPreferenceDriveReverse;
+    private EditTextPreference mEditTextPreferenceStraightAheadAngle;
     private CheckBoxPreference mCheckBoxPreferenceLogging;
 
     /**
@@ -94,6 +97,10 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
     public static boolean getDriveReverse() {
         return mDriveReverse;
+    }
+
+    public static short getStraightAheadAngle() {
+        return mStraightAheadAngle;
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -181,6 +188,12 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             mCheckBoxPreferenceDriveReverse.setSummary(R.string.option_drive_reverse_summary);
             mCheckBoxPreferenceDriveReverse.setOnPreferenceChangeListener(this);
         }
+
+        key = getString(R.string.option_straight_ahead_angle_key);
+        mEditTextPreferenceStraightAheadAngle = (EditTextPreference) this.findPreference(key);
+        title = getString(R.string.option_straight_ahead_angle_title) + ": " + mStraightAheadAngle;
+        mEditTextPreferenceStraightAheadAngle.setTitle(title);
+        mEditTextPreferenceStraightAheadAngle.setOnPreferenceChangeListener(this);
 
         key = getString(R.string.option_robobody_mac_key);
         mEditTextPreferenceRoboBodyMac = (EditTextPreference) this.findPreference(key);
@@ -271,6 +284,10 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         key = context.getString(R.string.option_drive_reverse_key);
         mDriveReverse = settings.getBoolean(key, true);
 
+        key = context.getString(R.string.option_straight_ahead_angle_key);
+        defaultValue = context.getString(R.string.option_straight_ahead_angle_default_value);
+        mStraightAheadAngle = Short.valueOf(settings.getString(key, defaultValue));
+
         key = context.getString(R.string.option_robobody_mac_key);
         defaultValue = context.getString(R.string.option_robobody_mac_default_value);
         mRoboBodyMac = settings.getString(key, defaultValue);
@@ -344,6 +361,13 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
             return true;
         } else if (preference == mCheckBoxPreferenceDriveReverse) {
             mDriveReverse = (Boolean) newValue;
+            return true;
+        } else if (preference == mEditTextPreferenceStraightAheadAngle) {
+            final short angle = Short.valueOf((String) newValue);
+            if ((angle < RoboState.getHeadVerticalServoMinDegree()) || (angle > RoboState.getHeadVerticalServoMaxDegree())) {
+                return false;
+            }
+            mStraightAheadAngle = angle;
             return true;
         } else if (preference == mEditTextPreferenceRoboBodyMac) {
             mRoboBodyMac = (String) newValue;

@@ -77,6 +77,7 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private long mTimeTemp = 0;
+    private static final long PID_PERIOD = 30;
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
@@ -93,24 +94,26 @@ public class HeadAnalyzerNode implements NodeMain {
 
                 Quaternion q = mSensorOrientation.getDeviceToWorld();
 
-                mCurrentAzimuth = q.getYaw() + RoboState.getHeadHorizontalZeroDegree();
-                if (mCurrentAzimuth < RoboState.getHeadHorizontalServoMinDegree()) {
-                    mCurrentAzimuth = RoboState.getHeadHorizontalServoMinDegree();
-                } else if (mCurrentAzimuth > RoboState.getHeadHorizontalServoMaxDegree()) {
-                    mCurrentAzimuth = RoboState.getHeadHorizontalServoMaxDegree();
+                float currentAzimuth = q.getYaw() + RoboState.getHeadHorizontalZeroDegree();
+                if (currentAzimuth < RoboState.getHeadHorizontalServoMinDegree()) {
+                    currentAzimuth = RoboState.getHeadHorizontalServoMinDegree();
+                } else if (currentAzimuth > RoboState.getHeadHorizontalServoMaxDegree()) {
+                    currentAzimuth = RoboState.getHeadHorizontalServoMaxDegree();
                 }
+                mCurrentAzimuth = currentAzimuth;
 
-                mCurrentPitch = -q.getPitch() + RoboState.getHeadVerticalZeroDegree();
-                if (mCurrentPitch < RoboState.getHeadVerticalServoMinDegree()) {
-                    mCurrentPitch = RoboState.getHeadVerticalServoMinDegree();
-                } else if (mCurrentPitch > RoboState.getHeadVerticalServoMaxDegree()) {
-                    mCurrentPitch = RoboState.getHeadVerticalServoMaxDegree();
+                float currentPitch = -q.getPitch() + RoboState.getHeadVerticalZeroDegree();
+                if (currentPitch < RoboState.getHeadVerticalServoMinDegree()) {
+                    currentPitch = RoboState.getHeadVerticalServoMinDegree();
+                } else if (currentPitch > RoboState.getHeadVerticalServoMaxDegree()) {
+                    currentPitch = RoboState.getHeadVerticalServoMaxDegree();
                 }
+                mCurrentPitch = currentPitch;
 
 
 
-                Vector2 t = new Vector2(mTargetAzimuth, mTargetPitch);
-                Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
+//                Vector2 t = new Vector2(mTargetAzimuth, mTargetPitch);
+//                Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
 //                Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
 
 
@@ -119,18 +122,20 @@ public class HeadAnalyzerNode implements NodeMain {
                     final float azimuthDelta = mCalibrating ? 0 : mTargetAzimuth - mCurrentAzimuth;
                     final float pitchDelta = mCalibrating ? 0 : mTargetPitch - mCurrentPitch;
 
-                    Vector2 delta = new Vector2(azimuthDelta, pitchDelta);
-                    Log.d(HeadAnalyzerNode.this, String.format("+++ t: %s  c: %s  d: %s", Log.fmt(t), Log.fmt(c), Log.fmt(delta)));
+//                    Vector2 delta = new Vector2(azimuthDelta, pitchDelta);
+//                    Log.d(HeadAnalyzerNode.this, String.format("+++ t: %s  c: %s  d: %s", Log.fmt(t), Log.fmt(c), Log.fmt(delta)));
 
                     if (!mCalibrating) {
                         moveHead(azimuthDelta, pitchDelta);
                     }
                 }
 
-                testAdbPlot(mTimeTemp, mTargetAzimuth, mCurrentAzimuth, mTargetAzimuth - mCurrentAzimuth);
-                mTimeTemp += 40;
+                final float time = (float) mTimeTemp / 1000f;
+                Plot.send("headpos", time, mTargetAzimuth, mCurrentAzimuth, mTargetPitch, mCurrentPitch);
+
+                mTimeTemp += PID_PERIOD;
             }
-        }, 2000, 40*100); //todo #4
+        }, 2000, PID_PERIOD);
 
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
 
@@ -330,11 +335,6 @@ public class HeadAnalyzerNode implements NodeMain {
         final short horizontalPeriod = (short) Math.round(NICETY_FACTOR / speed);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
-    }
-
-    private void testAdbPlot(long time, float targetAzimuth, float currentAzimuth, float deltaAzimuth) {
-        Log.d(this, String.format("+=+=+\t%d\t%f\t%f\t%f", time, targetAzimuth, currentAzimuth, deltaAzimuth));
-        Log.d(this, String.format("=====\t%d\t%f\t%f\t%f", time, targetAzimuth, currentAzimuth, deltaAzimuth));
     }
 
     private short getRotatePeriod(float deltaDegree) {

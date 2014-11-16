@@ -30,7 +30,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/preference_camera">
+        android:title="@string/preference_control">
 
         <ListPreference
             android:key="@string/option_camera_index_key"
@@ -60,6 +60,16 @@
             android:key="@string/option_drive_reverse_key"
             android:title="@string/option_drive_reverse_title"
             android:summary="@string/option_drive_reverse_summary" />
+
+        <EditTextPreference
+                android:numeric="integer"
+                android:inputType="number"
+                android:key="@string/option_straight_ahead_angle_key"
+                android:title="@string/option_straight_ahead_angle_title"
+                android:summary="@string/option_straight_ahead_angle_summary"
+                android:defaultValue="@string/option_straight_ahead_angle_default_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
     </PreferenceCategory>
 

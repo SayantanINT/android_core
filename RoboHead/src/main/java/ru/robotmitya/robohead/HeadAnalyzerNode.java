@@ -284,7 +284,7 @@ public class HeadAnalyzerNode implements NodeMain {
         Log.d(this, "Start calibrate");
         mCalibrating = true;
 
-        positionHead(RoboState.getHeadHorizontalZeroDegree(), RoboState.getHeadVerticalZeroDegree());
+        positionHead(RoboState.getHeadHorizontalZeroDegree(), SettingsFragment.getStraightAheadAngle());
 
         Timer waitHeadServos = new Timer();
         waitHeadServos.schedule(new TimerTask() {
@@ -293,6 +293,14 @@ public class HeadAnalyzerNode implements NodeMain {
                 SensorOrientationHelper.calibrate(mSensorOrientation);
             }
         }, 3000);
+
+        Timer moveServosToZeroPosition = new Timer();
+        moveServosToZeroPosition.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                positionHead(RoboState.getHeadHorizontalZeroDegree(), RoboState.getHeadVerticalZeroDegree());
+            }
+        }, 4000);
 
         Timer stopCalibrationDelay = new Timer();
         stopCalibrationDelay.schedule(new TimerTask() {
@@ -303,7 +311,7 @@ public class HeadAnalyzerNode implements NodeMain {
                 mCalibrating = false;
                 Log.d(HeadAnalyzerNode.this, "Stop calibrate");
             }
-        }, 4000);
+        }, 5000);
     }
 
     private void positionHead(final float horizontalDegree, final float verticalDegree) {

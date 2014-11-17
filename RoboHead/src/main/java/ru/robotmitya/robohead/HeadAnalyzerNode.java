@@ -76,7 +76,7 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private long mTimeTemp = 0;
-    private static final long PID_PERIOD = 30;
+    private static final long PID_PERIOD = 10;
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
@@ -344,7 +344,8 @@ public class HeadAnalyzerNode implements NodeMain {
         publishCommand(horizontalCommand);
         publishCommand(verticalCommand);
 */
-        mHorizontalPid.setInput(horizontalDeltaDegree);
+        mHorizontalPid.setTarget(mTargetAzimuth);
+        mHorizontalPid.setInput(mCurrentAzimuth);
         final double speed = mHorizontalPid.performPid();
         final short horizontalPeriod = Math.abs(speed) < MathUtils.FLOAT_ROUNDING_ERROR ? 0 : (short) Math.round(1.0 / speed);
         Log.d(this, "horizontalPeriod: " + horizontalPeriod);

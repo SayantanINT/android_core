@@ -62,14 +62,90 @@
             android:summary="@string/option_drive_reverse_summary" />
 
         <EditTextPreference
-                android:numeric="integer"
-                android:inputType="number"
-                android:key="@string/option_straight_ahead_angle_key"
-                android:title="@string/option_straight_ahead_angle_title"
-                android:summary="@string/option_straight_ahead_angle_summary"
-                android:defaultValue="@string/option_straight_ahead_angle_default_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            android:numeric="integer"
+            android:inputType="number"
+            android:key="@string/option_straight_ahead_angle_key"
+            android:title="@string/option_straight_ahead_angle_title"
+            android:summary="@string/option_straight_ahead_angle_summary"
+            android:defaultValue="@string/option_straight_ahead_angle_default_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <PreferenceScreen
+            android:title="@string/preference_screen_title"
+            android:summary="@string/preference_screen_summary">
+
+            <PreferenceCategory
+                android:title="@string/preference_head_horizontal">
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_horizontal_pid_kp_key"
+                        android:title="@string/option_horizontal_pid_kp_title"
+                        android:summary="@string/option_horizontal_pid_kp_summary"
+                        android:defaultValue="@string/option_horizontal_pid_kp_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_horizontal_pid_ki_key"
+                        android:title="@string/option_horizontal_pid_ki_title"
+                        android:summary="@string/option_horizontal_pid_ki_summary"
+                        android:defaultValue="@string/option_horizontal_pid_ki_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_horizontal_pid_kd_key"
+                        android:title="@string/option_horizontal_pid_kd_title"
+                        android:summary="@string/option_horizontal_pid_kd_summary"
+                        android:defaultValue="@string/option_horizontal_pid_kd_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+            </PreferenceCategory>
+
+            <PreferenceCategory
+                    android:title="@string/preference_head_vertical">
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_vertical_pid_kp_key"
+                        android:title="@string/option_vertical_pid_kp_title"
+                        android:summary="@string/option_vertical_pid_kp_summary"
+                        android:defaultValue="@string/option_vertical_pid_kp_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_vertical_pid_ki_key"
+                        android:title="@string/option_vertical_pid_ki_title"
+                        android:summary="@string/option_vertical_pid_ki_summary"
+                        android:defaultValue="@string/option_vertical_pid_ki_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                <EditTextPreference
+                        android:numeric="decimal"
+                        android:inputType="numberDecimal"
+                        android:key="@string/option_vertical_pid_kd_key"
+                        android:title="@string/option_vertical_pid_kd_title"
+                        android:summary="@string/option_vertical_pid_kd_summary"
+                        android:defaultValue="@string/option_vertical_pid_kd_default_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+            </PreferenceCategory>
+
+        </PreferenceScreen>
 
     </PreferenceCategory>
 

@@ -44,6 +44,25 @@
     <string name="option_straight_ahead_angle_title">Vertical straight ahead</string>
     <string name="option_straight_ahead_angle_summary">Vertical head angle in degrees to calibrate orientation sensors</string>
 
+    <string name="preference_screen_title">PID controllers…</string>
+    <string name="preference_screen_summary">Attention! Edit PID settings carefully.</string>
+
+    <string name="preference_head_horizontal">Head horizontal servo</string>
+    <string name="option_horizontal_pid_kp_title">Kp</string>
+    <string name="option_horizontal_pid_kp_summary">Proportional term constant</string>
+    <string name="option_horizontal_pid_ki_title">Ki</string>
+    <string name="option_horizontal_pid_ki_summary">Integral term constant</string>
+    <string name="option_horizontal_pid_kd_title">Kd</string>
+    <string name="option_horizontal_pid_kd_summary">Derivative term constant</string>
+
+    <string name="preference_head_vertical">Head vertical servo</string>
+    <string name="option_vertical_pid_kp_title">Kp</string>
+    <string name="option_vertical_pid_kp_summary">Proportional term constant</string>
+    <string name="option_vertical_pid_ki_title">Ki</string>
+    <string name="option_vertical_pid_ki_summary">Integral term constant</string>
+    <string name="option_vertical_pid_kd_title">Kd</string>
+    <string name="option_vertical_pid_kd_summary">Derivative term constant</string>
+
     <string name="preference_bluetooth">Bluetooth communication with the robot</string>
     <string name="option_robobody_mac_title">MAC-address of the robot</string>
     <string name="option_robobody_mac_summary">MAC-address of the Bluetooth adapter</string>

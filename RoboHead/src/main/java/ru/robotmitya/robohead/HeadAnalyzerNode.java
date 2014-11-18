@@ -27,7 +27,6 @@ import java.util.TimerTask;
  */
 public class HeadAnalyzerNode implements NodeMain {
     private static final float SMOOTH_FACTOR = 0.9f;
-//    private static final double NICETY_FACTOR = 1000000f;
 
     private Context mContext;
 
@@ -54,10 +53,13 @@ public class HeadAnalyzerNode implements NodeMain {
     private final HeadAnalyzerTuner mHeadAnalyzerTuner = new HeadAnalyzerTuner();
 
     private PidController mHorizontalPid = new PidController();
+    private PidController mVerticalPid = new PidController();
+
     private static final String HORIZONTAL_PID_PREFS_NAME = "HorizontalPid";
-    private static final String HORIZONTAL_PID_KP_OPTION_NAME = "Kp";
-    private static final String HORIZONTAL_PID_KI_OPTION_NAME = "Ki";
-    private static final String HORIZONTAL_PID_KD_OPTION_NAME = "Kd";
+    private static final String VERTICAL_PID_PREFS_NAME = "VerticalPid";
+    private static final String PID_KP_OPTION_NAME = "Kp";
+    private static final String PID_KI_OPTION_NAME = "Ki";
+    private static final String PID_KD_OPTION_NAME = "Kd";
 
     public HeadAnalyzerNode(Context context, int screenRotation, BluetoothBodyNode bluetoothBodyNode) {
         mContext = context;
@@ -109,21 +111,13 @@ public class HeadAnalyzerNode implements NodeMain {
                 }
                 mCurrentPitch = currentPitch;
 
-
-
-//                Vector2 t = new Vector2(mTargetAzimuth, mTargetPitch);
-//                Vector2 c = new Vector2(mCurrentAzimuth, mCurrentPitch);
-//                Log.d(HeadAnalyzerNode.this, "+++ t: " + Log.fmt(t) + "   c: " + Log.fmt(c));
-
                 final boolean isPidEnabled = mControlMode == AppConst.Common.ControlMode.ORIENTATION;
                 mHorizontalPid.setEnabled(isPidEnabled);
+                mVerticalPid.setEnabled(isPidEnabled);
                 if (isPidEnabled) {
                     // Zero delta means don't move.
                     final float azimuthDelta = mCalibrating ? 0 : mTargetAzimuth - mCurrentAzimuth;
                     final float pitchDelta = mCalibrating ? 0 : mTargetPitch - mCurrentPitch;
-
-//                    Vector2 delta = new Vector2(azimuthDelta, pitchDelta);
-//                    Log.d(HeadAnalyzerNode.this, String.format("+++ t: %s  c: %s  d: %s", Log.fmt(t), Log.fmt(c), Log.fmt(delta)));
 
                     if (!mCalibrating) {
                         moveHead(azimuthDelta, pitchDelta);
@@ -145,20 +139,21 @@ public class HeadAnalyzerNode implements NodeMain {
         Subscriber<std_msgs.String> commandSubscriber = connectedNode.newSubscriber(AppConst.RoboHead.CONTROL_MODE_TOPIC, std_msgs.String._TYPE);
         commandSubscriber.addMessageListener(createCommandMessageListener());
 
-//        for (int i = 0; i <= 200; i++) {
-//            final short period = getRotatePeriod(i);
-//            Log.d(this, "####\t" + i + "\t" + period);
-//        }
+        mHorizontalPid.setKp(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, 0));
+        mHorizontalPid.setKi(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, 0));
+        mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, 0));
+        mHorizontalPid.setInputRange(RoboState.getHeadHorizontalServoMinDegree(), RoboState.getHeadHorizontalServoMaxDegree());
+        mHorizontalPid.setOutputRange(-1.0 / 128.0, 1.0 / 128.0);
+        Log.d(this, String.format("Horizontal PID: Kp = %f  Ki = %f  Kd = %f",
+                mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
 
-        mHorizontalPid.setKp(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, 0));
-        mHorizontalPid.setKi(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, 0));
-        mHorizontalPid.setKd(loadFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, 0));
-        mHorizontalPid.setInputRange(0, 180);
-        mHorizontalPid.setOutputRange(//Transforming period to speed. NICETY_FACTOR to increase accuracy and to make factors shorter.
-//                1.0 / 4608.0,
-                -1.0 / 128.0,
-                1.0 / 128.0);
-        Log.d(this, String.format("Kp = %f  Ki = %f  Kd = %f", mHorizontalPid.getKp(), mHorizontalPid.getKi(), mHorizontalPid.getKd()));
+        mVerticalPid.setKp(loadFloatOption(VERTICAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, 0));
+        mVerticalPid.setKi(loadFloatOption(VERTICAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, 0));
+        mVerticalPid.setKd(loadFloatOption(VERTICAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, 0));
+        mVerticalPid.setInputRange(RoboState.getHeadHorizontalServoMinDegree(), RoboState.getHeadHorizontalServoMaxDegree());
+        mVerticalPid.setOutputRange(-1.0 / 128.0, 1.0 / 128.0);
+        Log.d(this, String.format("Vertical PID: Kp = %f  Ki = %f  Kd = %f",
+                mVerticalPid.getKp(), mVerticalPid.getKi(), mVerticalPid.getKd()));
 
         mHeadAnalyzerTuner.start(mContext);
     }
@@ -218,8 +213,6 @@ public class HeadAnalyzerNode implements NodeMain {
 
                 mTargetAzimuth = getHorizontalDegree(mTargetPosition);
                 mTargetPitch = getVerticalDegree(mTargetPosition);
-
-                Log.d(this, "+++ p.x = " + mTargetPosition.x + "   mTargetAzimuth = " + mTargetAzimuth); //todo #4
 
                 if (mControlMode == AppConst.Common.ControlMode.TWO_JOYSTICKS) {
                     positionHead(mTargetAzimuth, mTargetPitch);
@@ -332,25 +325,19 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private void moveHead(final float horizontalDeltaDegree, final float verticalDeltaDegree) {
-/*
-        final short horizontalPeriod = getRotatePeriod(horizontalDeltaDegree);
-        final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
-        Log.d(this, "++ H ++ delta: " + MathUtils.round(horizontalDeltaDegree) + ", period: " + horizontalPeriod);
-
-        final short verticalPeriod = getRotatePeriod(verticalDeltaDegree);
-        final String verticalCommand = MessageHelper.makeMessage(Rs.HeadVerticalRotationPeriod.ID, verticalPeriod);
-        Log.d(this, "++ V ++ delta: " + MathUtils.round(verticalDeltaDegree) + ", period: " + verticalPeriod);
-
-        publishCommand(horizontalCommand);
-        publishCommand(verticalCommand);
-*/
         mHorizontalPid.setTarget(mTargetAzimuth);
         mHorizontalPid.setInput(mCurrentAzimuth);
-        final double speed = mHorizontalPid.performPid();
-        final short horizontalPeriod = Math.abs(speed) < MathUtils.FLOAT_ROUNDING_ERROR ? 0 : (short) Math.round(1.0 / speed);
-        Log.d(this, "horizontalPeriod: " + horizontalPeriod);
+        final double horizontalSpeed = mHorizontalPid.performPid();
+        final short horizontalPeriod = Math.abs(horizontalSpeed) < MathUtils.FLOAT_ROUNDING_ERROR ? 0 : (short) Math.round(1.0 / horizontalSpeed);
         final String horizontalCommand = MessageHelper.makeMessage(Rs.HeadHorizontalRotationPeriod.ID, horizontalPeriod);
         publishCommand(horizontalCommand);
+
+        mVerticalPid.setTarget(mTargetPitch);
+        mVerticalPid.setInput(mCurrentPitch);
+        final double verticalSpeed = mVerticalPid.performPid();
+        final short verticalPeriod = Math.abs(verticalSpeed) < MathUtils.FLOAT_ROUNDING_ERROR ? 0 : (short) Math.round(1.0 / verticalSpeed);
+        final String verticalCommand = MessageHelper.makeMessage(Rs.HeadVerticalRotationPeriod.ID, verticalPeriod);
+        publishCommand(verticalCommand);
     }
 
     private void stopMoving() {
@@ -360,6 +347,7 @@ public class HeadAnalyzerNode implements NodeMain {
         publishCommand(verticalCommand);
     }
 
+/*
     private short getRotatePeriod(float deltaDegree) {
         final float MIN_DEGREE = 2;
         final float MAX_DEGREE = 180;
@@ -387,42 +375,81 @@ public class HeadAnalyzerNode implements NodeMain {
         result /= 10;
         return (short) MathUtils.round(result);
     }
+*/
 
     public void setHorizontalKp(final float kp) {
         mHorizontalPid.setKp(kp);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
         Log.d(this, String.format("Kp = %f", mHorizontalPid.getKp()));
     }
 
     public void setHorizontalKi(final float ki) {
         mHorizontalPid.setKi(ki);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
         Log.d(this, String.format("Ki = %f", mHorizontalPid.getKi()));
     }
 
     public void setHorizontalKd(final float kd) {
         mHorizontalPid.setKd(kd);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
         Log.d(this, String.format("Kd = %f", mHorizontalPid.getKd()));
     }
 
     public void addHorizontalKp(final float deltaKp) {
         mHorizontalPid.addKp(deltaKp);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, (float) mHorizontalPid.getKp());
         Log.d(this, String.format("Kp = %f", mHorizontalPid.getKp()));
     }
 
     public void addHorizontalKi(final float deltaKi) {
         mHorizontalPid.addKi(deltaKi);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, (float) mHorizontalPid.getKi());
         Log.d(this, String.format("Ki = %f", mHorizontalPid.getKi()));
     }
 
     public void addHorizontalKd(final float deltaKd) {
         mHorizontalPid.addKd(deltaKd);
-        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, HORIZONTAL_PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
+        saveFloatOption(HORIZONTAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, (float) mHorizontalPid.getKd());
         Log.d(this, String.format("Kd = %f", mHorizontalPid.getKd()));
     }
+
+/////////////////////
+    public void setVerticalKp(final float kp) {
+        mVerticalPid.setKp(kp);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, (float) mVerticalPid.getKp());
+        Log.d(this, String.format("Vertical Kp = %f", mVerticalPid.getKp()));
+    }
+
+    public void setVerticalKi(final float ki) {
+        mVerticalPid.setKi(ki);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, (float) mVerticalPid.getKi());
+        Log.d(this, String.format("Vertical Ki = %f", mVerticalPid.getKi()));
+    }
+
+    public void setVerticalKd(final float kd) {
+        mVerticalPid.setKd(kd);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, (float) mVerticalPid.getKd());
+        Log.d(this, String.format("Vertical Kd = %f", mVerticalPid.getKd()));
+    }
+
+    public void addVerticalKp(final float deltaKp) {
+        mVerticalPid.addKp(deltaKp);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KP_OPTION_NAME, (float) mVerticalPid.getKp());
+        Log.d(this, String.format("Vertical Kp = %f", mVerticalPid.getKp()));
+    }
+
+    public void addVerticalKi(final float deltaKi) {
+        mVerticalPid.addKi(deltaKi);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KI_OPTION_NAME, (float) mVerticalPid.getKi());
+        Log.d(this, String.format("Vertical Ki = %f", mVerticalPid.getKi()));
+    }
+
+    public void addVerticalKd(final float deltaKd) {
+        mVerticalPid.addKd(deltaKd);
+        saveFloatOption(VERTICAL_PID_PREFS_NAME, PID_KD_OPTION_NAME, (float) mVerticalPid.getKd());
+        Log.d(this, String.format("Vertical Kd = %f", mVerticalPid.getKd()));
+    }
+/////////////////////
 
     private void saveFloatOption(final String preferencesName, final String optionName, final float value) {
         SharedPreferences settings = mContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
@@ -440,6 +467,7 @@ public class HeadAnalyzerNode implements NodeMain {
         mTargetAzimuth = azimuthDegree;
         mHorizontalPid.setTarget(mTargetAzimuth);
         mTargetPitch = pitchDegree;
+        mVerticalPid.setTarget(mTargetPitch);
         Log.d(this, String.format("Target azimuth: %f  Target pitch: %f", mTargetAzimuth, mTargetPitch));
     }
 
@@ -453,6 +481,7 @@ public class HeadAnalyzerNode implements NodeMain {
             mControlMode = AppConst.Common.ControlMode.ORIENTATION;
         }
         mHorizontalPid.setEnabled(enabled);
+        mVerticalPid.setEnabled(enabled);
         Log.d(this, "PID test " + (enabled ? "started" : "stopped"));
     }
 }

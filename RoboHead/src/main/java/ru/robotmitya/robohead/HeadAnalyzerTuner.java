@@ -11,8 +11,10 @@ import android.content.IntentFilter;
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.PositionHead --ei h 19 --ei v 74
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetTarget --es h "19.74" --es v "10.01"
  *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.ActivatePidTest --ez e true
- *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetPidFactors --es Kp "197.4" --es Ki "19.74" --es Kd "1.974"
- *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetPidFactors --es addKp "0.1" --es addKi "0.2" --es addKd "0.3"
+ *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetHorizontalPidFactors --es Kp "197.4" --es Ki "19.74" --es Kd "1.974"
+ *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetHorizontalPidFactors --es addKp "0.1" --es addKi "0.2" --es addKd "0.3"
+ *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetVerticalPidFactors --es Kp "197.4" --es Ki "19.74" --es Kd "1.974"
+ *  >_  adb shell am broadcast -a ru.robotmitya.robohead.HeadAnalyzerTuner.SetVerticalPidFactors --es addKp "0.1" --es addKi "0.2" --es addKd "0.3"
  *
  *  Note: --ef doesn't work in Android 4.0.3. I guess it was added in 4.2. So I have to use --es with string typed values.
  *
@@ -42,8 +44,18 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
             public static final String EXTRA_ENABLED = "e";
         }
 
-        public static class SetPidFactors {
-            public static final String ACTION = "ru.robotmitya.robohead.HeadAnalyzerTuner.SetPidFactors";
+        public static class SetHorizontalPidFactors {
+            public static final String ACTION = "ru.robotmitya.robohead.HeadAnalyzerTuner.SetHorizontalPidFactors";
+            public static final String EXTRA_KP = "Kp";
+            public static final String EXTRA_KI = "Ki";
+            public static final String EXTRA_KD = "Kd";
+            public static final String EXTRA_ADD_KP = "addKp";
+            public static final String EXTRA_ADD_KI = "addKi";
+            public static final String EXTRA_ADD_KD = "addKd";
+        }
+
+        public static class SetVerticalPidFactors {
+            public static final String ACTION = "ru.robotmitya.robohead.HeadAnalyzerTuner.SetVerticalPidFactors";
             public static final String EXTRA_KP = "Kp";
             public static final String EXTRA_KI = "Ki";
             public static final String EXTRA_KD = "Kd";
@@ -65,7 +77,8 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
         intentFilter.addAction(Intent.PositionHead.ACTION);
         intentFilter.addAction(Intent.SetTarget.ACTION);
         intentFilter.addAction(Intent.ActivatePidTest.ACTION);
-        intentFilter.addAction(Intent.SetPidFactors.ACTION);
+        intentFilter.addAction(Intent.SetHorizontalPidFactors.ACTION);
+        intentFilter.addAction(Intent.SetVerticalPidFactors.ACTION);
         context.registerReceiver(this, intentFilter);
     }
 
@@ -89,31 +102,57 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
         } else if (action.equals(Intent.ActivatePidTest.ACTION)) {
             final boolean enabled = intent.getBooleanExtra(Intent.ActivatePidTest.EXTRA_ENABLED, false);
             mHeadAnalyzerNode.activatePidTest(enabled);
-        } else if (action.equals(Intent.SetPidFactors.ACTION)) {
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_KP)) {
-                final float kp = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_KP), 0);
+        } else if (action.equals(Intent.SetHorizontalPidFactors.ACTION)) {
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KP)) {
+                final float kp = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KP), 0);
                 mHeadAnalyzerNode.setHorizontalKp(kp);
             }
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_KI)) {
-                final float ki = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_KI), 0);
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KI)) {
+                final float ki = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KI), 0);
                 mHeadAnalyzerNode.setHorizontalKi(ki);
             }
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_KD)) {
-                final float kd = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_KD), 0);
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KD)) {
+                final float kd = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KD), 0);
                 mHeadAnalyzerNode.setHorizontalKd(kd);
             }
 
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_ADD_KP)) {
-                final float deltaKp = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_ADD_KP), 0);
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KP)) {
+                final float deltaKp = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KP), 0);
                 mHeadAnalyzerNode.addHorizontalKp(deltaKp);
             }
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_ADD_KI)) {
-                final float deltaKi = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_ADD_KI), 0);
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KI)) {
+                final float deltaKi = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KI), 0);
                 mHeadAnalyzerNode.addHorizontalKi(deltaKi);
             }
-            if (intent.hasExtra(Intent.SetPidFactors.EXTRA_ADD_KD)) {
-                final float deltaKd = textToFloat(intent.getStringExtra(Intent.SetPidFactors.EXTRA_ADD_KD), 0);
+            if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KD)) {
+                final float deltaKd = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KD), 0);
                 mHeadAnalyzerNode.addHorizontalKd(deltaKd);
+            }
+        } else if (action.equals(Intent.SetVerticalPidFactors.ACTION)) {
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KP)) {
+                final float kp = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KP), 0);
+                mHeadAnalyzerNode.setVerticalKp(kp);
+            }
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KI)) {
+                final float ki = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KI), 0);
+                mHeadAnalyzerNode.setVerticalKi(ki);
+            }
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KD)) {
+                final float kd = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KD), 0);
+                mHeadAnalyzerNode.setVerticalKd(kd);
+            }
+
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KP)) {
+                final float deltaKp = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KP), 0);
+                mHeadAnalyzerNode.addVerticalKp(deltaKp);
+            }
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KI)) {
+                final float deltaKi = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KI), 0);
+                mHeadAnalyzerNode.addVerticalKi(deltaKi);
+            }
+            if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KD)) {
+                final float deltaKd = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KD), 0);
+                mHeadAnalyzerNode.addVerticalKd(deltaKd);
             }
         }
     }

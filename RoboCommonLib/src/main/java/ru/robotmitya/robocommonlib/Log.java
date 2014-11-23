@@ -107,6 +107,10 @@ public final class Log {
         android.util.Log.e(LOG_TAG, source.getClass().getName() + " => " + msg);
     }
 
+    public static void e(final Object source, final String msg, final Throwable throwable) {
+        android.util.Log.e(LOG_TAG, source.getClass().getName() + " => " + msg, throwable);
+    }
+
     public static void messagePublished(final NodeMain node, final String topic, final String message) {
         if (ENABLE_LOG) {
             android.util.Log.d(LOG_TAG, node.getDefaultNodeName() + " => published to " + topic + ": " + message);

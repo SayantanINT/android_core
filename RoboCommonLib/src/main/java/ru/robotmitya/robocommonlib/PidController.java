@@ -6,6 +6,8 @@ package ru.robotmitya.robocommonlib;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class PidController {
+    private String mName;
+
     private double mKp;			// factor for "proportional" control
     private double mKi;			// factor for "integral" control
     private double mKd;			// factor for "derivative" control
@@ -23,6 +25,9 @@ public class PidController {
     private double mError = 0.0;
     private double mResult = 0.0;
 
+    private Long mStartTimestamp;
+    private Long mPreviousTimestamp;
+
     /**
      * Allocate a PID object with the given constants for P, I, D
      * @param kp the proportional coefficient
@@ -35,7 +40,8 @@ public class PidController {
         mKd = kd;
     }
 
-    public PidController() {
+    public PidController(final String name) {
+        mName = name;
     }
 
     /**
@@ -44,14 +50,22 @@ public class PidController {
      * and is created during initialization.
      */
     private void calculate() {
+
+        if (mStartTimestamp == null) {
+            mStartTimestamp = System.currentTimeMillis();
+        } else {
+            long currentTimestamp = System.currentTimeMillis() - mStartTimestamp;
+            if (mPreviousTimestamp != null) {
+                Plot.send("mitya" + mName, currentTimestamp / 1000f, currentTimestamp - mPreviousTimestamp);
+            }
+            mPreviousTimestamp = currentTimestamp;
+        }
+
         // If enabled then proceed into controller calculations
         if (mEnabled) {
 
             // Calculate the error signal
             mError = mTarget - mInput;
-
-            // !!!!DEBUG!!!
-//            System.out.println(mTarget);
 
             // If continuous is set to true allow wrap around
             if (mContinuous) {

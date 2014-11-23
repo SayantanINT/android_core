@@ -3,6 +3,7 @@ package ru.robotmitya.robohead;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import ru.robotmitya.robocommonlib.Log;
 
 /**
  *
@@ -83,7 +84,11 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
     }
 
     public void stop(final Context context) {
-        context.unregisterReceiver(this);
+        try {
+            context.unregisterReceiver(this);
+        } catch (Exception e) {
+            Log.e(this, e.getMessage(), e);
+        }
     }
 
     @Override

@@ -191,7 +191,8 @@ public class BluetoothBodyNode implements NodeMain {
             if (mBluetoothSocket != null) {
                 try {
                     mOutputStream.write(messageBody.getBytes());
-                    Log.d(BluetoothBodyNode.this, "sent to body via Bluetooth: " + messageBody);
+                    Log.d(BluetoothBodyNode.this, "sent to body via Bluetooth: " + messageBody +
+                            " (" + (short) MessageHelper.getMessageIntegerValue(messageBody) + ")");
                 } catch (IOException e) {
                     String errorText = String.format(
                             mContext.getResources().getString(R.string.error_sending_message_through_bluetooth),

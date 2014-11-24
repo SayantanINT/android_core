@@ -18,11 +18,11 @@ import geometry_msgs.Vector3;
 import ru.robotmitya.robocommonlib.*;
 
 import java.lang.String;
-import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by dmitrydzz on 4/12/14.
@@ -43,7 +43,7 @@ public class HeadAnalyzerNode implements NodeMain {
     private int mControlMode = AppConst.Common.ControlMode.TWO_JOYSTICKS;
 
     private SensorOrientation mSensorOrientation;
-    private Timer mPublisherTimer;
+    private ScheduledThreadPoolExecutor mPublisherExecutor;
     private boolean mStartingSensorOrientation;
     private volatile float mCurrentAzimuth = 0;
     private volatile float mCurrentPitch = 0;
@@ -81,12 +81,12 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private long mTimeTemp = 0;
-    private static final long PID_PERIOD = 50;
+    private static final long PID_PERIOD = 30;
 
     private class PidThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable runnable) {
             Thread thread = new Thread(runnable);
-            thread.setPriority(8);
+            thread.setPriority(Thread.MAX_PRIORITY);
             return thread;
         }
     }
@@ -96,18 +96,14 @@ public class HeadAnalyzerNode implements NodeMain {
         mSensorOrientation.start();
         mStartingSensorOrientation = true;
 
-//        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
-//        executor.setThreadFactory(new PidThreadFactory());
-//        executor.sh
-//        executor.scheduleAtFixedRate()
-
-        mPublisherTimer = new Timer();
-        mPublisherTimer.scheduleAtFixedRate(new TimerTask() {
+        mPublisherExecutor = new ScheduledThreadPoolExecutor(20);
+        mPublisherExecutor.setThreadFactory(new PidThreadFactory());
+        mPublisherExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 mainHandler();
             }
-        }, 2000, PID_PERIOD);
+        }, 2000, PID_PERIOD, TimeUnit.MILLISECONDS);
 
         mBodyPublisher = connectedNode.newPublisher(AppConst.RoboHead.BODY_TOPIC, std_msgs.String._TYPE);
 
@@ -143,8 +139,7 @@ public class HeadAnalyzerNode implements NodeMain {
 
         mSensorOrientation.stop();
 
-        mPublisherTimer.cancel();
-        mPublisherTimer.purge();
+        mPublisherExecutor.shutdownNow();
 
         stopMoving();
     }

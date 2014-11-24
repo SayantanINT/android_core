@@ -8,10 +8,20 @@ import com.badlogic.gdx.math.Vector3;
  * Created by dzakhovds on 14.11.14.
  */
 public class Plot {
+    private static boolean ENABLE_PLOT;
+
+    static {
+        ENABLE_PLOT = true;
+    }
+
     private static final String PLOT_SEPARATOR = " ";
 
     @SuppressWarnings("UnusedDeclaration")
     public static void send(final String tag, final float x, float... yArgs) {
+        if (!ENABLE_PLOT) {
+            return;
+        }
+
         if (yArgs.length == 0) {
             return;
         }
@@ -26,6 +36,10 @@ public class Plot {
 
     @SuppressWarnings("UnusedDeclaration")
     public static void send(final String tag, final long x, float... yArgs) {
+        if (!ENABLE_PLOT) {
+            return;
+        }
+
         if (yArgs.length == 0) {
             return;
         }

@@ -102,7 +102,7 @@ public class MainActivity extends RosActivity {
             data.putExtra("NEW_MASTER", SettingsFragment.getIsPublicMaster());
             data.putExtra("ROS_MASTER_PRIVATE", false);
             onActivityResult(0, RESULT_OK, data);
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             super.startMasterChooser();
         }

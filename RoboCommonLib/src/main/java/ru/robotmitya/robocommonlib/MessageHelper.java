@@ -83,7 +83,7 @@ public final class MessageHelper {
      */
     public static String makeMessage(final String messageIdentifier, final short messageValue) {
         String identifier = correctLength(messageIdentifier, MESSAGE_IDENTIFIER_LENGTH, IDENTIFIER_PREFIX);
-        String hexValue = Integer.toHexString(messageValue).toUpperCase();
+        String hexValue = Integer.toHexString(messageValue); //.toUpperCase();
         hexValue = MessageHelper.correctLength(hexValue, MESSAGE_VALUE_LENGTH, VALUE_PREFIX);
         return identifier.concat(hexValue);
     }

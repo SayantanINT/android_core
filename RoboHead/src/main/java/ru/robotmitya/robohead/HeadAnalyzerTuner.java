@@ -101,62 +101,62 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
             final int pitchDegree = intent.getIntExtra(Intent.PositionHead.EXTRA_VERTICAL, 45);
             mHeadAnalyzerNode.setHead(azimuthDegree, pitchDegree);
         } else if (action.equals(Intent.SetTarget.ACTION)) {
-            float azimuthDegree = textToFloat(intent.getStringExtra(Intent.SetTarget.EXTRA_HORIZONTAL), 90);
-            final float pitchDegree = textToFloat(intent.getStringExtra(Intent.SetTarget.EXTRA_VERTICAL), 45);
+            float azimuthDegree = (float) textToDouble(intent.getStringExtra(Intent.SetTarget.EXTRA_HORIZONTAL), 90);
+            final float pitchDegree = (float) textToDouble(intent.getStringExtra(Intent.SetTarget.EXTRA_VERTICAL), 45);
             mHeadAnalyzerNode.setTarget(azimuthDegree, pitchDegree);
         } else if (action.equals(Intent.ActivatePidTest.ACTION)) {
             final boolean enabled = intent.getBooleanExtra(Intent.ActivatePidTest.EXTRA_ENABLED, false);
             mHeadAnalyzerNode.activatePidTest(enabled);
         } else if (action.equals(Intent.SetHorizontalPidFactors.ACTION)) {
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KP)) {
-                final float kp = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KP), 0);
+                final double kp = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KP), 0);
                 mHeadAnalyzerNode.setHorizontalKp(kp);
             }
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KI)) {
-                final float ki = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KI), 0);
+                final double ki = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KI), 0);
                 mHeadAnalyzerNode.setHorizontalKi(ki);
             }
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_KD)) {
-                final float kd = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KD), 0);
+                final double kd = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_KD), 0);
                 mHeadAnalyzerNode.setHorizontalKd(kd);
             }
 
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KP)) {
-                final float deltaKp = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KP), 0);
+                final double deltaKp = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KP), 0);
                 mHeadAnalyzerNode.addHorizontalKp(deltaKp);
             }
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KI)) {
-                final float deltaKi = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KI), 0);
+                final double deltaKi = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KI), 0);
                 mHeadAnalyzerNode.addHorizontalKi(deltaKi);
             }
             if (intent.hasExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KD)) {
-                final float deltaKd = textToFloat(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KD), 0);
+                final double deltaKd = textToDouble(intent.getStringExtra(Intent.SetHorizontalPidFactors.EXTRA_ADD_KD), 0);
                 mHeadAnalyzerNode.addHorizontalKd(deltaKd);
             }
         } else if (action.equals(Intent.SetVerticalPidFactors.ACTION)) {
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KP)) {
-                final float kp = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KP), 0);
+                final double kp = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KP), 0);
                 mHeadAnalyzerNode.setVerticalKp(kp);
             }
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KI)) {
-                final float ki = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KI), 0);
+                final double ki = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KI), 0);
                 mHeadAnalyzerNode.setVerticalKi(ki);
             }
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_KD)) {
-                final float kd = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KD), 0);
+                final double kd = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_KD), 0);
                 mHeadAnalyzerNode.setVerticalKd(kd);
             }
 
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KP)) {
-                final float deltaKp = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KP), 0);
+                final double deltaKp = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KP), 0);
                 mHeadAnalyzerNode.addVerticalKp(deltaKp);
             }
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KI)) {
-                final float deltaKi = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KI), 0);
+                final double deltaKi = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KI), 0);
                 mHeadAnalyzerNode.addVerticalKi(deltaKi);
             }
             if (intent.hasExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KD)) {
-                final float deltaKd = textToFloat(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KD), 0);
+                final double deltaKd = textToDouble(intent.getStringExtra(Intent.SetVerticalPidFactors.EXTRA_ADD_KD), 0);
                 mHeadAnalyzerNode.addVerticalKd(deltaKd);
             }
         }
@@ -167,13 +167,13 @@ public class HeadAnalyzerTuner extends BroadcastReceiver {
      * @param value dot separated float number text.
      * @return parsed float value of the default value.
      */
-    private float textToFloat(final String value, final float defaultValue) {
+    private double textToDouble(final String value, final double defaultValue) {
         if (value == null) {
             return defaultValue;
         }
 
         try {
-            return Float.parseFloat(value);
+            return Double.parseDouble(value);
         } catch (NumberFormatException e) {
             return defaultValue;
         }

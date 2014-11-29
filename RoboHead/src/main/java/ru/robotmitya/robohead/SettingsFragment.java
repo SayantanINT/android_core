@@ -7,14 +7,8 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.EditTextPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
+import android.preference.*;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import android.text.Spannable;
@@ -51,6 +45,13 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private static boolean mDriveReverse;
     private static short mStraightAheadAngle;
 
+    private static double mPidHeadHorizontalKp;
+    private static double mPidHeadHorizontalKi;
+    private static double mPidHeadHorizontalKd;
+    private static double mPidHeadVerticalKp;
+    private static double mPidHeadVerticalKi;
+    private static double mPidHeadVerticalKd;
+
     /**
      * Robot's Bluetooth adapter MAC-address.
      */
@@ -64,6 +65,12 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
     private ListPreference mListPreferenceBackCameraMode;
     private CheckBoxPreference mCheckBoxPreferenceDriveReverse;
     private EditTextPreference mEditTextPreferenceStraightAheadAngle;
+    private EditTextPreference mEditTextPreferencePidHeadHorizontalKp;
+    private EditTextPreference mEditTextPreferencePidHeadHorizontalKi;
+    private EditTextPreference mEditTextPreferencePidHeadHorizontalKd;
+    private EditTextPreference mEditTextPreferencePidHeadVerticalKp;
+    private EditTextPreference mEditTextPreferencePidHeadVerticalKi;
+    private EditTextPreference mEditTextPreferencePidHeadVerticalKd;
     private CheckBoxPreference mCheckBoxPreferenceLogging;
 
     /**
@@ -101,6 +108,66 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
     public static short getStraightAheadAngle() {
         return mStraightAheadAngle;
+    }
+
+    public static double getPidHeadHorizontalKp() {
+        return mPidHeadHorizontalKp;
+    }
+
+    public static double getPidHeadHorizontalKi() {
+        return mPidHeadHorizontalKi;
+    }
+
+    public static double getPidHeadHorizontalKd() {
+        return mPidHeadHorizontalKd;
+    }
+
+    public static double getPidHeadVerticalKp() {
+        return mPidHeadVerticalKp;
+    }
+
+    public static double getPidHeadVerticalKi() {
+        return mPidHeadVerticalKi;
+    }
+
+    public static double getPidHeadVerticalKd() {
+        return mPidHeadVerticalKd;
+    }
+
+    public static void setPidHeadHorizontalKp(final Context context, final double value) {
+        mPidHeadHorizontalKp = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_horizontal_pid_kp_key), String.valueOf(value)).apply();
+    }
+
+    public static void setPidHeadHorizontalKi(final Context context, final double value) {
+        mPidHeadHorizontalKi = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_horizontal_pid_ki_key), String.valueOf(value)).apply();
+    }
+
+    public static void setPidHeadHorizontalKd(final Context context, final double value) {
+        mPidHeadHorizontalKd = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_horizontal_pid_kd_key), String.valueOf(value)).apply();
+    }
+
+    public static void setPidHeadVerticalKp(final Context context, final double value) {
+        mPidHeadVerticalKp = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_vertical_pid_kp_key), String.valueOf(value)).apply();
+    }
+
+    public static void setPidHeadVerticalKi(final Context context, final double value) {
+        mPidHeadVerticalKi = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_vertical_pid_ki_key), String.valueOf(value)).apply();
+    }
+
+    public static void setPidHeadVerticalKd(final Context context, final double value) {
+        mPidHeadVerticalKd = value;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.option_vertical_pid_kd_key), String.valueOf(value)).apply();
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -195,6 +262,26 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         mEditTextPreferenceStraightAheadAngle.setTitle(title);
         mEditTextPreferenceStraightAheadAngle.setOnPreferenceChangeListener(this);
 
+//        key = getString(R.string.option_horizontal_pid_kp_key);
+//        mEditTextPreferencePidHeadHorizontalKp = (EditTextPreference) this.findPreference(key);
+//        title = getString(R.string.option_horizontal_pid_kp_title) + ": " + mPidHeadHorizontalKp;
+//        mEditTextPreferencePidHeadHorizontalKp.setTitle(title);
+//        mEditTextPreferencePidHeadHorizontalKp.setOnPreferenceChangeListener(this);
+
+        mEditTextPreferencePidHeadHorizontalKp = initEditTextPreference(R.string.option_horizontal_pid_kp_key,
+                R.string.option_horizontal_pid_kp_title, String.valueOf(mPidHeadHorizontalKp));
+        mEditTextPreferencePidHeadHorizontalKi = initEditTextPreference(R.string.option_horizontal_pid_ki_key,
+                R.string.option_horizontal_pid_ki_title, String.valueOf(mPidHeadHorizontalKi));
+        mEditTextPreferencePidHeadHorizontalKd = initEditTextPreference(R.string.option_horizontal_pid_kd_key,
+                R.string.option_horizontal_pid_kd_title, String.valueOf(mPidHeadHorizontalKd));
+
+        mEditTextPreferencePidHeadVerticalKp = initEditTextPreference(R.string.option_vertical_pid_kp_key,
+                R.string.option_vertical_pid_kp_title, String.valueOf(mPidHeadVerticalKp));
+        mEditTextPreferencePidHeadVerticalKi = initEditTextPreference(R.string.option_vertical_pid_ki_key,
+                R.string.option_vertical_pid_ki_title, String.valueOf(mPidHeadVerticalKi));
+        mEditTextPreferencePidHeadVerticalKd = initEditTextPreference(R.string.option_vertical_pid_kd_key,
+                R.string.option_vertical_pid_kd_title, String.valueOf(mPidHeadVerticalKd));
+
         key = getString(R.string.option_robobody_mac_key);
         mEditTextPreferenceRoboBodyMac = (EditTextPreference) this.findPreference(key);
         title = getString(R.string.option_robobody_mac_title) + ": " + mRoboBodyMac;
@@ -205,6 +292,21 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         mCheckBoxPreferenceLogging = (CheckBoxPreference) this.findPreference(key);
         onPreferenceChange(mCheckBoxPreferenceLogging, Log.getEnabled());
         mCheckBoxPreferenceLogging.setOnPreferenceChangeListener(this);
+    }
+
+    private EditTextPreference initEditTextPreference(final int key, final int titleId, final String value) {
+        EditTextPreference editTextPreference = (EditTextPreference) this.findPreference(getString(key));
+        setPreferenceTitle(editTextPreference, titleId, value);
+        editTextPreference.setOnPreferenceChangeListener(this);
+        return editTextPreference;
+    }
+
+    private void setPreferenceTitle(final Preference preference, final int titleId, final String value) {
+        if ((value == null) || value.equals("")) {
+            preference.setTitle(getString(titleId));
+        } else {
+            preference.setTitle(getString(titleId) + ": " + value);
+        }
     }
 
     /**
@@ -226,7 +328,7 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
 
         try {
             mLocalMasterUri = SettingsHelper.getNewPublicMasterUri();
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             mLocalMasterUri = context.getString(R.string.option_master_uri_default_value);
             try {
                 mLocalMasterUri = SettingsHelper.getMasterUri(mLocalMasterUri);
@@ -287,6 +389,30 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
         key = context.getString(R.string.option_straight_ahead_angle_key);
         defaultValue = context.getString(R.string.option_straight_ahead_angle_default_value);
         mStraightAheadAngle = Short.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_horizontal_pid_kp_key);
+        defaultValue = context.getString(R.string.option_horizontal_pid_kp_default_value);
+        mPidHeadHorizontalKp = Double.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_horizontal_pid_ki_key);
+        defaultValue = context.getString(R.string.option_horizontal_pid_ki_default_value);
+        mPidHeadHorizontalKi = Double.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_horizontal_pid_kd_key);
+        defaultValue = context.getString(R.string.option_horizontal_pid_kd_default_value);
+        mPidHeadHorizontalKd = Double.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_vertical_pid_kp_key);
+        defaultValue = context.getString(R.string.option_vertical_pid_kp_default_value);
+        mPidHeadVerticalKp = Double.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_vertical_pid_ki_key);
+        defaultValue = context.getString(R.string.option_vertical_pid_ki_default_value);
+        mPidHeadVerticalKi = Double.valueOf(settings.getString(key, defaultValue));
+
+        key = context.getString(R.string.option_vertical_pid_kd_key);
+        defaultValue = context.getString(R.string.option_vertical_pid_kd_default_value);
+        mPidHeadVerticalKd = Double.valueOf(settings.getString(key, defaultValue));
 
         key = context.getString(R.string.option_robobody_mac_key);
         defaultValue = context.getString(R.string.option_robobody_mac_default_value);
@@ -368,6 +494,30 @@ public final class SettingsFragment extends PreferenceFragment implements OnPref
                 return false;
             }
             mStraightAheadAngle = angle;
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadHorizontalKp) {
+            mPidHeadHorizontalKp = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_horizontal_pid_kp_title, String.valueOf(mPidHeadHorizontalKp));
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadHorizontalKi) {
+            mPidHeadHorizontalKi = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_horizontal_pid_ki_title, String.valueOf(mPidHeadHorizontalKi));
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadHorizontalKd) {
+            mPidHeadHorizontalKd = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_horizontal_pid_kd_title, String.valueOf(mPidHeadHorizontalKd));
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadVerticalKp) {
+            mPidHeadVerticalKp = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_vertical_pid_kp_title, String.valueOf(mPidHeadVerticalKp));
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadVerticalKi) {
+            mPidHeadVerticalKi = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_vertical_pid_ki_title, String.valueOf(mPidHeadVerticalKi));
+            return true;
+        } else if (preference == mEditTextPreferencePidHeadVerticalKd) {
+            mPidHeadVerticalKd = Double.valueOf((String) newValue);
+            setPreferenceTitle(preference, R.string.option_vertical_pid_kd_title, String.valueOf(mPidHeadVerticalKd));
             return true;
         } else if (preference == mEditTextPreferenceRoboBodyMac) {
             mRoboBodyMac = (String) newValue;

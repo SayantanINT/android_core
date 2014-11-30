@@ -85,7 +85,7 @@ public class HeadAnalyzerNode implements NodeMain {
     }
 
     private long mTimeTemp = 0;
-    private static final long PID_PERIOD = 30;
+    private static final long PID_PERIOD = 20;
 
     private class PidThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable runnable) {
@@ -198,8 +198,7 @@ public class HeadAnalyzerNode implements NodeMain {
             }
         }
 
-        final float time = (float) mTimeTemp / 1000f;
-        Plot.send("headpos", time, mTargetAzimuth, mCurrentAzimuth, mTargetPitch, mCurrentPitch);
+//        Plot.sendFast("headpos", mTimeTemp, (long) mTargetAzimuth, (long) mCurrentAzimuth, (long) mTargetPitch, (long) mCurrentPitch);
 
         mTimeTemp += PID_PERIOD;
     }

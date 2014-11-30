@@ -56,7 +56,7 @@ public class PidController {
         } else {
             long currentTimestamp = System.currentTimeMillis() - mStartTimestamp;
             if (mPreviousTimestamp != null) {
-                Plot.send("mitya" + mName, currentTimestamp / 1000f, currentTimestamp - mPreviousTimestamp);
+//                Plot.sendFast("mitya" + mName, currentTimestamp, currentTimestamp - mPreviousTimestamp);
             }
             mPreviousTimestamp = currentTimestamp;
         }
